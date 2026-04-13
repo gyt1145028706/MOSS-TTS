@@ -70,6 +70,9 @@ MOSS‑TTS Family is an open‑source **speech and sound generation model family
   - [MOSS-TTS](#moss-tts-seed-tts-eval)
   - [MOSS-TTSD](#moss-ttsd-subjective--ttsd-eval)
   - [MOSS-VoiceGenerator](#moss-voicegenerator-subjective)
+- [MOSS-TTS-Nano](#moss-tts-nano)
+  - [Introduction](#moss-tts-nano-introduction)
+  - [Model Weights](#moss-tts-nano-model-weights)
 - [MOSS-Audio-Tokenizer](#moss-audio-tokenizer)
   - [Introduction](#mat-intro)
   - [Model Weights](#model-weights)
@@ -589,6 +592,33 @@ Note: SDPA + torch.compile were enabled during testing. The following results ar
 We deployed Qwen3.5-9B using vLLM to measure $T_{\text{LLM-first-sentence}}$. The time required to generate 12 tokens (the TTS prefill length) was 197 ms.
 
 $T_{\text{LLM-first-sentence}} + T_{\text{MOSS-TTS-Realtime-TTFB}} = 197ms + 180ms = 377ms$
+
+<a id="moss-tts-nano"></a>
+## MOSS-TTS-Nano
+
+<a id="moss-tts-nano-introduction"></a>
+### Introduction
+
+MOSS-TTS-Nano is our lightweight TTS model for CPU-first realtime deployment. Its main features include:
+
+- **0.1B parameters**
+- **Realtime generation on just 4 CPU cores**
+- **Multilingual voice cloning**
+- **48 kHz stereo input/output**
+
+To learn more about setup, advanced usage, and evaluation metrics, please visit the [MOSS-TTS-Nano repository](https://github.com/OpenMOSS/MOSS-TTS-Nano).
+
+<p align="center">
+  <img src="assets/arch_moss_tts_nano.png" alt="MOSS TTS Nano architecture" width="100%" />
+  Architecture of MOSS-TTS-Nano
+</p>
+
+<a id="moss-tts-nano-model-weights"></a>
+### Model Weights
+
+| Model | Hugging Face | ModelScope |
+|:-----:|:------------:|:----------:|
+| **MOSS-TTS-Nano** | [![Hugging Face](https://img.shields.io/badge/Huggingface-Model-orange?logo=huggingface)](https://huggingface.co/OpenMOSS-Team/MOSS-TTS-Nano) | [![ModelScope](https://img.shields.io/badge/ModelScope-Model-lightgrey?logo=modelscope)](https://modelscope.cn/models/openmoss/MOSS-TTS-Nano) |
 
 
 ## MOSS-Audio-Tokenizer

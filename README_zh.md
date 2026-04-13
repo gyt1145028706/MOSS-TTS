@@ -72,6 +72,9 @@ MOSS‑TTS 家族是由 [MOSI.AI](https://mosi.cn/#hero) 与 [OpenMOSS 团队](h
   - [MOSS-TTS 评测](#eval-moss-tts)
   - [MOSS-TTSD 评测](#eval-moss-ttsd)
   - [MOSS-VoiceGenerator 评测](#eval-moss-voicegenerator)
+- [MOSS-TTS-Nano](#moss-tts-nano)
+  - [介绍](#moss-tts-nano-introduction-zh)
+  - [模型权重](#moss-tts-nano-model-weights-zh)
 - [语音编解码器](#audio-tokenizer)
   - [介绍](#audio-tokenizer-intro)
   - [模型权重](#model-weights)
@@ -602,6 +605,33 @@ MOSS‑VoiceGenerator 在 **整体偏好**、**指令遵循** 与 **自然度** 
 We deployed Qwen3.5-9B using vLLM to measure $T_{\text{LLM-first-sentence}}$. The time required to generate 12 tokens (the TTS prefill length) was 197 ms.
 
 $T_{\text{LLM-first-sentence}} + T_{\text{MOSS-TTS-Realtime-TTFB}} = 197ms + 180ms = 377ms$
+
+<a id="moss-tts-nano"></a>
+## MOSS-TTS-Nano
+
+<a id="moss-tts-nano-introduction-zh"></a>
+### 介绍
+
+MOSS-TTS-Nano 是面向 CPU 优先、实时部署场景的轻量级 TTS 模型，主要特性包括：
+
+- **0.1B 参数量**
+- **仅需 4 核 CPU 即可实现实时生成**
+- **支持多语种 voice clone**
+- **支持 48 kHz 立体声输入输出**
+
+如需了解更多环境配置、进阶用法和评测指标，请访问 [MOSS-TTS-Nano 仓库](https://github.com/OpenMOSS/MOSS-TTS-Nano)。
+
+<p align="center">
+  <img src="assets/arch_moss_tts_nano.png" alt="MOSS TTS Nano architecture" width="100%" />
+  MOSS-TTS-Nano 架构图
+</p>
+
+<a id="moss-tts-nano-model-weights-zh"></a>
+### 模型权重
+
+| Model | Hugging Face | ModelScope |
+|:-----:|:------------:|:----------:|
+| **MOSS-TTS-Nano** | [![Hugging Face](https://img.shields.io/badge/Huggingface-Model-orange?logo=huggingface)](https://huggingface.co/OpenMOSS-Team/MOSS-TTS-Nano) | [![ModelScope](https://img.shields.io/badge/ModelScope-Model-lightgrey?logo=modelscope)](https://modelscope.cn/models/openmoss/MOSS-TTS-Nano) |
 
 
 <a id="audio-tokenizer"></a>
