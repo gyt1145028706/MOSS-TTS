@@ -34,7 +34,7 @@ MOSS‑TTS 家族是由 [MOSI.AI](https://mosi.cn/#hero) 与 [OpenMOSS 团队](h
 
 <a id="news"></a>
 ## 新闻
-* 2026.4.13：🚀 ~100M 参数量的 MOSS-TTS-Nano 已发布！支持多语种 voice clone、48 kHz 立体声输入输出，并且仅需 4 核 CPU 即可实现流式输出。详情可查看我们的 [blog](https://openmoss.github.io/MOSS-TTS-Nano-Demo/)。
+* 2026.4.13：🚀 ~100M 参数量的 MOSS-TTS-Nano 已发布！支持多语种 voice clone、48 kHz 立体声输入输出，并且仅需 4 核 CPU 即可实现流式输出。详情可查看 [GitHub 仓库](https://github.com/OpenMOSS/MOSS-TTS-Nano) 和我们的 [blog](https://openmoss.github.io/MOSS-TTS-Nano-Demo/)。
 * 2026.3.31: 📄 [MOSS-TTSD](https://arxiv.org/pdf/2603.19739) 和 [MOSS-VoiceGenerator](https://arxiv.org/pdf/2603.28086) 的技术报告现已在arXiv上发布！
 * 2026.3.26: 📘 新增 MOSS-TTS-Realtime 微调教程！
 * 2026.3.20: 📄 我们的[技术报告](https://arxiv.org/pdf/2603.18090)现已在arXiv上发布！
@@ -612,12 +612,14 @@ $T_{\text{LLM-first-sentence}} + T_{\text{MOSS-TTS-Realtime-TTFB}} = 197ms + 180
 <a id="moss-tts-nano-introduction-zh"></a>
 ### 介绍
 
-MOSS-TTS-Nano 是面向 CPU 优先、实时部署场景的轻量级 TTS 模型，主要特性包括：
+**MOSS-TTS-Nano** 是面向 CPU 优先、实时部署场景的轻量级 TTS 模型。它聚焦于真实产品落地里最关键的几个点：更小的模型体积、更低的流式生成时延，以及足以支撑本地 demo、Web 服务和轻量级生产集成的 voice clone 质量。基于纯自回归的 **Audio Tokenizer + LLM** 管线，MOSS-TTS-Nano 在保持部署栈简洁的同时，让无需 GPU 的实时语音生成真正具备可用性。
 
-- **0.1B 参数量**
-- **仅需 4 核 CPU 即可实现实时生成**
-- **支持多语种 voice clone**
-- **支持 48 kHz 立体声输入输出**
+其主要特性包括：
+
+- **0.1B 参数量**：模型体积紧凑，显著降低了内存占用与部署成本，更适合本地部署和轻量级服务化场景。
+- **仅需 4 核 CPU 即可实现实时生成**：能够在纯 CPU 环境下高效完成流式语音生成，适合本地应用和成本敏感型部署场景。
+- **支持多语种 voice clone**：支持多语种语音克隆流程，可基于单条参考音频完成跨语言合成。
+- **支持 48 kHz 立体声输入输出**：原生支持高质量立体声音频，有助于同时提升参考音频保真度和最终听感。
 
 如需了解更多环境配置、进阶用法和评测指标，请访问 [MOSS-TTS-Nano 仓库](https://github.com/OpenMOSS/MOSS-TTS-Nano)。
 
