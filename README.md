@@ -610,10 +610,11 @@ Its main features include:
 
 To learn more about setup, advanced usage, and evaluation metrics, please visit the [MOSS-TTS-Nano repository](https://github.com/OpenMOSS/MOSS-TTS-Nano).
 
-<p align="center">
+<div align="center">
   <img src="assets/arch_moss_tts_nano.png" alt="MOSS TTS Nano architecture" width="80%" />
-  Architecture of MOSS-TTS-Nano
-</p>
+</div>
+
+<p align="center">Architecture of MOSS-TTS-Nano</p>
 
 <a id="moss-tts-nano-model-weights"></a>
 ### Model Weights
