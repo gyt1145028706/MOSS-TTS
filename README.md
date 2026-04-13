@@ -611,7 +611,7 @@ Its main features include:
 To learn more about setup, advanced usage, and evaluation metrics, please visit the [MOSS-TTS-Nano repository](https://github.com/OpenMOSS/MOSS-TTS-Nano).
 
 <p align="center">
-  <img src="assets/arch_moss_tts_nano.png" alt="MOSS TTS Nano architecture" width="100%" />
+  <img src="assets/arch_moss_tts_nano.png" alt="MOSS TTS Nano architecture" width="80%" />
   Architecture of MOSS-TTS-Nano
 </p>
 

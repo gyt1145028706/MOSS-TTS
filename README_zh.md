@@ -624,7 +624,7 @@ $T_{\text{LLM-first-sentence}} + T_{\text{MOSS-TTS-Realtime-TTFB}} = 197ms + 180
 如需了解更多环境配置、进阶用法和评测指标，请访问 [MOSS-TTS-Nano 仓库](https://github.com/OpenMOSS/MOSS-TTS-Nano)。
 
 <p align="center">
-  <img src="assets/arch_moss_tts_nano.png" alt="MOSS TTS Nano architecture" width="100%" />
+  <img src="assets/arch_moss_tts_nano.png" alt="MOSS TTS Nano architecture" width="80%" />
   MOSS-TTS-Nano 架构图
 </p>
 
