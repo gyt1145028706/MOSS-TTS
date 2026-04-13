@@ -34,6 +34,7 @@ MOSS‑TTS 家族是由 [MOSI.AI](https://mosi.cn/#hero) 与 [OpenMOSS 团队](h
 
 <a id="news"></a>
 ## 新闻
+* 2026.4.13：🚀 ~100M 参数量的 MOSS-TTS-Nano 已发布！支持多语种 voice clone、48 kHz 立体声输入输出，并且仅需 4 核 CPU 即可实现流式输出。详情可查看我们的 [blog](https://openmoss.github.io/MOSS-TTS-Nano-Demo/)。
 * 2026.3.31: 📄 [MOSS-TTSD](https://arxiv.org/pdf/2603.19739) 和 [MOSS-VoiceGenerator](https://arxiv.org/pdf/2603.28086) 的技术报告现已在arXiv上发布！
 * 2026.3.26: 📘 新增 MOSS-TTS-Realtime 微调教程！
 * 2026.3.20: 📄 我们的[技术报告](https://arxiv.org/pdf/2603.18090)现已在arXiv上发布！
