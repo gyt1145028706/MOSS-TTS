@@ -58,6 +58,7 @@ SUPPORT_FILES = (
     REPO_ROOT / "moss_tts_delay" / "configuration_moss_tts.py",
     REPO_ROOT / "moss_tts_delay" / "modeling_moss_tts.py",
     REPO_ROOT / "moss_tts_delay" / "processing_moss_tts.py",
+    REPO_ROOT / "moss_tts_delay" / "tts_robust_normalizer_single_script.py",
     REPO_ROOT / "moss_tts_delay" / "inference_utils.py",
 )
 
@@ -84,7 +85,7 @@ def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         description="Supervised finetuning for MossTTSDelay-family tasks."
     )
-    parser.add_argument("--model-path", type=str, default="OpenMOSS-Team/MOSS-TTS")
+    parser.add_argument("--model-path", type=str, default="OpenMOSS-Team/MOSS-TTS-v1.5")
     parser.add_argument("--codec-path", type=str, default="OpenMOSS-Team/MOSS-Audio-Tokenizer")
     parser.add_argument(
         "--train-jsonl",

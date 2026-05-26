@@ -33,27 +33,30 @@ pip install --extra-index-url https://download.pytorch.org/whl/cu128 -e ".[torch
 - `audio`: 目标训练音频路径，`prepare_data.py` 会把它编码为 `audio_codes`
 - 其余字段直接映射到 `processor.build_user_message(...)`
 
-### 2.1 MOSS-TTS
+### 2.1 MOSS-TTS-v1.5
 
 #### 纯 `text, speech` pair
 
 这种格式不需要参考音频，已经直接支持：
 
 ```jsonl
-{"audio":"./data/utt0001.wav","text":"其实我真的有发现，我是一个特别善于观察别人情绪的人。","language":"zh"}
-{"audio":"./data/utt0002.wav","text":"She said she would be here by noon.","language":"en"}
+{"audio":"./data/utt0001.wav","text":"其实我真的有发现，我是一个特别善于观察别人情绪的人。","language":"Chinese"}
+{"audio":"./data/utt0002.wav","text":"She said she would be here by noon.","language":"English"}
 ```
 
 #### 音色克隆 / 参考音频条件训练
 
+对于 MOSS-TTS-v1.5，如果已知语言，建议设置 `language`，并使用 `Chinese`、`English`、`French` 等语言名称。
+
+
 ```jsonl
-{"audio":"./data/utt0001.wav","text":"其实我真的有发现，我是一个特别善于观察别人情绪的人。","ref_audio":"./data/ref.wav","language":"zh"}
-{"audio":"./data/utt0002.wav","text":"She said she would be here by noon.","ref_audio":"./data/ref.wav","language":"en"}
+{"audio":"./data/utt0001.wav","text":"其实我真的有发现，我是一个特别善于观察别人情绪的人。","ref_audio":"./data/ref.wav","language":"Chinese"}
+{"audio":"./data/utt0002.wav","text":"She said she would be here by noon.","ref_audio":"./data/ref.wav","language":"English"}
 ```
 
 ### 2.2 MOSS-TTSD
 
-MOSS-TTSD 和 MOSS-TTS 共用同一套 `prepare_data.py / sft.py`，格式也可以保持一致。  
+MOSS-TTSD 和 MOSS-TTS-v1.5 共用同一套 `prepare_data.py / sft.py`，格式也可以保持一致。
 区别只在于 `reference` 可以是多说话人列表，且列表中的元素允许为 `null`，表示该说话人没有参考音频：
 
 ```jsonl
@@ -61,7 +64,7 @@ MOSS-TTSD 和 MOSS-TTS 共用同一套 `prepare_data.py / sft.py`，格式也可
   "audio":"./data/dialog_target.wav",
   "text":"[S1] 这是说话人一的前缀。 [S2] 这是说话人二的前缀。 [S1] 下面开始新一轮对话。",
   "reference":["./data/s1_ref.wav", null],
-  "language":"zh"
+  "language":"Chinese"
 }
 ```
 
@@ -109,7 +112,7 @@ MOSS-VoiceGenerator 共享同一训练流，只需要使用 `text + instruction`
 
 ```bash
 python moss_tts_delay/finetuning/prepare_data.py \
-    --model-path OpenMOSS-Team/MOSS-TTS \
+    --model-path OpenMOSS-Team/MOSS-TTS-v1.5 \
     --codec-path OpenMOSS-Team/MOSS-Audio-Tokenizer \
     --device auto \
     --input-jsonl train_raw.jsonl \
@@ -120,7 +123,7 @@ python moss_tts_delay/finetuning/prepare_data.py \
 
 ```bash
 python moss_tts_delay/finetuning/prepare_data.py \
-    --model-path OpenMOSS-Team/MOSS-TTS \
+    --model-path OpenMOSS-Team/MOSS-TTS-v1.5 \
     --codec-path OpenMOSS-Team/MOSS-Audio-Tokenizer \
     --device auto \
     --input-jsonl train_raw.jsonl \
@@ -135,7 +138,7 @@ python moss_tts_delay/finetuning/prepare_data.py \
 
 ```bash
 accelerate launch --num_processes 16 moss_tts_delay/finetuning/prepare_data.py \
-    --model-path OpenMOSS-Team/MOSS-TTS \
+    --model-path OpenMOSS-Team/MOSS-TTS-v1.5 \
     --codec-path OpenMOSS-Team/MOSS-Audio-Tokenizer \
     --device auto \
     --input-jsonl train_raw.jsonl \
@@ -164,7 +167,7 @@ accelerate launch --num_processes 16 moss_tts_delay/finetuning/prepare_data.py \
 
 ```bash
 accelerate launch moss_tts_delay/finetuning/sft.py \
-    --model-path OpenMOSS-Team/MOSS-TTS \
+    --model-path OpenMOSS-Team/MOSS-TTS-v1.5 \
     --train-jsonl train_with_codes.jsonl \
     --output-dir output/moss_tts_sft \
     --per-device-batch-size 1 \
@@ -185,7 +188,7 @@ accelerate launch moss_tts_delay/finetuning/sft.py \
 accelerate launch \
     --config_file moss_tts_delay/finetuning/configs/accelerate_ddp_8gpu.yaml \
     moss_tts_delay/finetuning/sft.py \
-    --model-path OpenMOSS-Team/MOSS-TTS \
+    --model-path OpenMOSS-Team/MOSS-TTS-v1.5 \
     --train-jsonl 'prepared/train_with_codes.rank*.jsonl' \
     --output-dir output/moss_tts_sft_ddp \
     --per-device-batch-size 1 \
@@ -197,7 +200,7 @@ accelerate launch \
 
 ### 4.3 8B 模型的“模型并行 / 参数分片”训练
 
-对于 `MOSS-TTS` 8B，更推荐下面两种方式，而不是朴素单卡：
+对于 `MOSS-TTS-v1.5` 8B，更推荐下面两种方式，而不是朴素单卡：
 
 - **FSDP**: 参数、梯度、优化器状态按 rank 分片
 - **DeepSpeed ZeRO-3**: 参数、梯度、优化器状态全分片，适合更大的模型和多机场景
@@ -208,7 +211,7 @@ accelerate launch \
 accelerate launch \
     --config_file moss_tts_delay/finetuning/configs/accelerate_fsdp_8b.yaml \
     moss_tts_delay/finetuning/sft.py \
-    --model-path OpenMOSS-Team/MOSS-TTS \
+    --model-path OpenMOSS-Team/MOSS-TTS-v1.5 \
     --train-jsonl 'prepared/train_with_codes.rank*.jsonl' \
     --output-dir output/moss_tts_sft_fsdp \
     --per-device-batch-size 1 \
@@ -224,7 +227,7 @@ accelerate launch \
 accelerate launch \
     --config_file moss_tts_delay/finetuning/configs/accelerate_zero3_8b.yaml \
     moss_tts_delay/finetuning/sft.py \
-    --model-path OpenMOSS-Team/MOSS-TTS \
+    --model-path OpenMOSS-Team/MOSS-TTS-v1.5 \
     --train-jsonl 'prepared/train_with_codes.rank*.jsonl' \
     --output-dir output/moss_tts_sft_zero3 \
     --per-device-batch-size 1 \
@@ -315,7 +318,7 @@ def resolve_attn_implementation(device: str, dtype: torch.dtype) -> str:
 
 model_path = "output/moss_tts_sft/checkpoint-epoch-2"
 reference_audio = "./assets/audio/reference_zh_0.wav"
-text = "今天我们继续把 MOSS-TTS 的微调流程跑通。"
+text = "今天我们继续把 MOSS-TTS-v1.5 的微调流程跑通。"
 
 device = "cuda" if torch.cuda.is_available() else "cpu"
 dtype = torch.bfloat16 if device == "cuda" else torch.float32
@@ -388,7 +391,7 @@ bash moss_tts_delay/finetuning/run_train.sh
 
 其余任务不需要重新实现训练器，直接在 JSONL 中切换字段即可：
 
-- **MOSS-TTS**: 使用 `text`，可选 `ref_audio`
+- **MOSS-TTS-v1.5**: 使用 `text`，可选 `ref_audio`
 - **MOSS-TTSD**: 使用 `text + reference`，其中 `reference` 支持 `null`
 - **MOSS-SoundEffect**: 使用 `ambient_sound`
 - **MOSS-VoiceGenerator**: 使用 `text + instruction`
@@ -396,7 +399,7 @@ bash moss_tts_delay/finetuning/run_train.sh
 共享字段：
 
 - `audio`: 必填，目标音频
-- `language`, `tokens`, `quality`, `sound_event`, `ambient_sound`, `instruction`: 按任务需要填写
+- `language`, `tokens`, `quality`, `sound_event`, `ambient_sound`, `instruction`: 按任务需要填写。对于 MOSS-TTS-v1.5，建议使用 `Chinese`、`English`、`French` 等语言名称。
 
 共享脚本：
 

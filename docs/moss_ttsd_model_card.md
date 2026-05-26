@@ -45,6 +45,20 @@ For full architecture details, see **`moss_tts_delay/README.md`**.
 |---|---:|---:|---:|---:|
 | **MOSS-TTSD** | 1.1 | 0.9 | 50 | 1.1 |
 
+### 1.5 Supported Languages
+
+MOSS-TTSD-v1.0 currently follows the original MOSS-TTS family language set and supports **20 languages**:
+
+| Language | Code | Flag | Language | Code | Flag | Language | Code | Flag |
+|---|---|---|---|---|---|---|---|---|
+| Chinese | zh | 🇨🇳 | English | en | 🇺🇸 | German | de | 🇩🇪 |
+| Spanish | es | 🇪🇸 | French | fr | 🇫🇷 | Japanese | ja | 🇯🇵 |
+| Italian | it | 🇮🇹 | Hungarian | hu | 🇭🇺 | Korean | ko | 🇰🇷 |
+| Russian | ru | 🇷🇺 | Persian (Farsi) | fa | 🇮🇷 | Arabic | ar | 🇸🇦 |
+| Polish | pl | 🇵🇱 | Portuguese | pt | 🇵🇹 | Czech | cs | 🇨🇿 |
+| Danish | da | 🇩🇰 | Swedish | sv | 🇸🇪 | | | |
+| Greek | el | 🇬🇷 | Turkish | tr | 🇹🇷 | | | |
+
 ## 2. Quick Start
 
 MOSS-TTSD uses a **continuation** workflow: provide reference audio for each speaker, their transcripts as a prefix, and the dialogue text to generate. The model continues in each speaker's identity.

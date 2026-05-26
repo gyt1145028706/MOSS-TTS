@@ -2,6 +2,8 @@
 
 **MOSS-TTS** is a next-generation, production-grade TTS foundation model focused on **voice cloning**, **ultra-long stable speech generation**, **token-level duration control**, **multilingual & code-switched synthesis**, and **fine-grained Pinyin/phoneme-level pronunciation control**. It is built on a clean autoregressive discrete-token recipe that emphasizes high-quality audio tokenization, large-scale diverse pre-training data, and efficient discrete token modeling.
 
+**MOSS-TTS-v1.5** continues from MOSS-TTS 1.0, keeps the same generation API, expands MOSS-TTS multilingual coverage to 31 languages, improves voice-cloning stability, improves long-reference short-text cloning, follows punctuation-driven pauses more reliably, and supports explicit inline pause markers such as `[pause 3.2s]`.
+
 
 
 ## 1. Overview
@@ -64,27 +66,47 @@ For full details, see:
 
 | Model | Description |
 |---|---|
-| **MossTTSDelay-8B** | **Recommended for production**. Faster inference, stronger long-context stability, and robust voice cloning quality. Best for large-scale deployment and long-form narration. |
+| **MossTTSDelay-8B v1.5** | **Recommended for production**. Latest MOSS-TTS checkpoint with stronger multilingual synthesis when language tags are provided, more stable voice cloning, and explicit pause control. |
+| **MossTTSDelay-8B 1.0** | Original 8B delay-pattern release with strong long-context stability and robust voice cloning quality. |
 | **MossTTSLocal-1.7B** | **Recommended for evaluation and research**. Smaller model size with SOTA objective metrics. Great for quick experiments, ablations, and academic studies. |
 
 **Recommended decoding hyperparameters (per model)**
 
 | Model | audio_temperature | audio_top_p | audio_top_k | audio_repetition_penalty |
 |---|---:|---:|---:|---:|
-| **MossTTSDelay-8B** | 1.7 | 0.8 | 25 | 1.0 |
+| **MossTTSDelay-8B v1.5 / 1.0** | 1.7 | 0.8 | 25 | 1.0 |
 | **MossTTSLocal-1.7B** | 1.0 | 0.95 | 50 | 1.1 |
 
+### 1.5 Supported Languages
 
+MOSS-TTS-v1.5 currently supports **31 languages**. It keeps the 20 languages supported by MOSS-TTS 1.0 and extends multilingual continued training to Cantonese, Dutch, Finnish, Hindi, Macedonian, Malay, Romanian, Swahili, Tagalog, Thai, and Vietnamese.
+
+| Language | Code | Flag | Language | Code | Flag | Language | Code | Flag |
+|---|---|---|---|---|---|---|---|---|
+| Chinese | zh | 🇨🇳 | Cantonese | yue | 🇭🇰 | English | en | 🇺🇸 |
+| Arabic | ar | 🇸🇦 | Czech | cs | 🇨🇿 | Danish | da | 🇩🇰 |
+| Dutch | nl | 🇳🇱 | Finnish | fi | 🇫🇮 | French | fr | 🇫🇷 |
+| German | de | 🇩🇪 | Greek | el | 🇬🇷 | Hebrew | he | 🇮🇱 |
+| Hindi | hi | 🇮🇳 | Hungarian | hu | 🇭🇺 | Italian | it | 🇮🇹 |
+| Japanese | ja | 🇯🇵 | Korean | ko | 🇰🇷 | Macedonian | mk | 🇲🇰 |
+| Malay | ms | 🇲🇾 | Persian (Farsi) | fa | 🇮🇷 | Polish | pl | 🇵🇱 |
+| Portuguese | pt | 🇵🇹 | Romanian | ro | 🇷🇴 | Russian | ru | 🇷🇺 |
+| Spanish | es | 🇪🇸 | Swahili | sw | 🇹🇿 | Swedish | sv | 🇸🇪 |
+| Tagalog | tl | 🇵🇭 | Thai | th | 🇹🇭 | Turkish | tr | 🇹🇷 |
+| Vietnamese | vi | 🇻🇳 | | | | | | |
 
 
 ## 2. Quick Start
 
-> Tip: For production usage, prioritize **MossTTSDelay-8B**. The examples below use this model; **MossTTSLocal-1.7B** supports the same API, and a practical walkthrough is available in [moss_tts_local/README.md](../moss_tts_local/README.md).
+> Tip: For production usage, prioritize **MossTTSDelay-8B v1.5**. The examples below use this model; **MossTTSLocal-1.7B** supports the same API, and a practical walkthrough is available in [moss_tts_local/README.md](../moss_tts_local/README.md).
+
+> Tip: MOSS-TTS-v1.5 uses the same generation API as the 1.0 `MossTTSDelay-8B` checkpoint. For multilingual inputs, set `language` whenever the language is known.
 
 MOSS-TTS provides a convenient `generate` interface for rapid usage. The examples below cover:
-1. Direct generation (Chinese / English / Pinyin / IPA)
+1. Direct generation (Chinese / English / multilingual text with language tags / Pinyin / IPA)
 2. Voice cloning
 3. Duration control
+4. Explicit pause control with `[pause X.Ys]`
 
 ```python
 from pathlib import Path
@@ -100,7 +122,7 @@ torch.backends.cuda.enable_mem_efficient_sdp(True)
 torch.backends.cuda.enable_math_sdp(True)
 
 
-pretrained_model_name_or_path = "OpenMOSS-Team/MOSS-TTS"
+pretrained_model_name_or_path = "OpenMOSS-Team/MOSS-TTS-v1.5"
 device = "cuda" if torch.cuda.is_available() else "cpu"
 dtype = torch.bfloat16 if device == "cuda" else torch.float32
 
@@ -138,20 +160,27 @@ text_3 = "nin2 hao3，qing3 wen4 nin2 lai2 zi4 na3 zuo4 cheng2 shi4？"
 text_4 = "nin2 hao3，qing4 wen3 nin2 lai2 zi4 na4 zuo3 cheng4 shi3？"
 text_5 = "您好，请问您来自哪 zuo4 cheng2 shi4？"
 text_6 = "/həloʊ, meɪ aɪ æsk wɪtʃ sɪti juː ɑːr frʌm?/"
+text_7 = "Bonjour, je voudrais essayer une voix française naturelle et stable."
+text_8 = "我今天学习了一首中国的古诗，它的名字是[pause 3.2s]静夜思！"
 
 # Use audio from ./assets/audio to avoid downloading from the cloud.
 ref_audio_1 = "https://speech-demo.oss-cn-shanghai.aliyuncs.com/moss_tts_demo/tts_readme_demo/reference_zh.wav"
 ref_audio_2 = "https://speech-demo.oss-cn-shanghai.aliyuncs.com/moss_tts_demo/tts_readme_demo/reference_en.m4a"
 
 conversations = [
-    # Direct TTS (no reference)
+    # Direct TTS (no reference). Language tags are recommended in v1.5.
     [processor.build_user_message(text=text_1)],
     [processor.build_user_message(text=text_2)],
+    # Direct TTS (no reference). For languages other than Chinese and English,
+    # set the language tag whenever it is known.
+    [processor.build_user_message(text=text_7, language="French")],
     # Pinyin or IPA input
     [processor.build_user_message(text=text_3)],
     [processor.build_user_message(text=text_4)],
     [processor.build_user_message(text=text_5)],
     [processor.build_user_message(text=text_6)],
+    # Explicit pause control. Use [pause X.Ys], such as [pause 3.2s].
+    [processor.build_user_message(text=text_8)],
     # Voice cloning (with reference)
     [processor.build_user_message(text=text_1, reference=[ref_audio_1])],
     [processor.build_user_message(text=text_2, reference=[ref_audio_2])],
@@ -212,7 +241,7 @@ torch.backends.cuda.enable_mem_efficient_sdp(True)
 torch.backends.cuda.enable_math_sdp(True)
 
 
-pretrained_model_name_or_path = "OpenMOSS-Team/MOSS-TTS"
+pretrained_model_name_or_path = "OpenMOSS-Team/MOSS-TTS-v1.5"
 device = "cuda" if torch.cuda.is_available() else "cpu"
 dtype = torch.bfloat16 if device == "cuda" else torch.float32
 
@@ -307,7 +336,8 @@ with torch.no_grad():
 
 | Field | Type | Required | Description |
 |---|---|---:|---|
-| `text` | `str` | Yes | Text to synthesize. Supports Chinese, English, German, French, Spanish, Japanese, Korean, etc. Can mix raw text with Pinyin or IPA for pronunciation control. |
+| `text` | `str` | Yes | Text to synthesize. MOSS-TTS-v1.5 supports 31 languages. Text can mix raw text with Pinyin or IPA for pronunciation control and can include explicit pause markers such as `[pause 3.2s]`. |
+| `language` | `str` | No | Language tag for multilingual synthesis, for example `"French"`. Recommended in v1.5 whenever the language is known. |
 | `reference` | `List[str]` | No | Reference audio for voice cloning. For current MOSS-TTS, **one audio** is expected in the list. |
 | `tokens` | `int` | No | Expected number of audio tokens. **1s ≈ 12.5 tokens**. |
 

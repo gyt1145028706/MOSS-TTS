@@ -39,7 +39,7 @@ def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         description="Prepare MOSS-TTS finetuning JSONL by extracting target audio codes."
     )
-    parser.add_argument("--model-path", type=str, default="OpenMOSS-Team/MOSS-TTS")
+    parser.add_argument("--model-path", type=str, default="OpenMOSS-Team/MOSS-TTS-v1.5")
     parser.add_argument("--codec-path", type=str, default="OpenMOSS-Team/MOSS-Audio-Tokenizer")
     parser.add_argument(
         "--device",

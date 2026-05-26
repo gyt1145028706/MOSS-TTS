@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-MODEL_PATH="${MODEL_PATH:-OpenMOSS-Team/MOSS-TTS}"
+MODEL_PATH="${MODEL_PATH:-OpenMOSS-Team/MOSS-TTS-v1.5}"
 CODEC_PATH="${CODEC_PATH:-OpenMOSS-Team/MOSS-Audio-Tokenizer}"
 
 RAW_JSONL="${RAW_JSONL:-train_raw.jsonl}"

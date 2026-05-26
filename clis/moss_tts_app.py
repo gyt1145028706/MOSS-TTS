@@ -5,6 +5,7 @@ from pathlib import Path
 import re
 import time
 import orjson
+import os
 
 import gradio as gr
 import numpy as np
@@ -18,7 +19,7 @@ torch.backends.cuda.enable_flash_sdp(True)
 torch.backends.cuda.enable_mem_efficient_sdp(True)
 torch.backends.cuda.enable_math_sdp(True)
 
-MODEL_PATH = "OpenMOSS-Team/MOSS-TTS"
+MODEL_PATH = "OpenMOSS-Team/MOSS-TTS-v1.5"
 DEFAULT_ATTN_IMPLEMENTATION = "auto"
 DEFAULT_MAX_NEW_TOKENS = 4096
 CONTINUATION_NOTICE = (
@@ -32,6 +33,41 @@ ZH_TOKENS_PER_CHAR = 3.098411951313033
 EN_TOKENS_PER_CHAR = 0.8673376262755219
 REFERENCE_AUDIO_DIR = Path(__file__).resolve().parent.parent / "assets" / "audio"
 EXAMPLE_TEXTS_JSONL_PATH = Path(__file__).resolve().parent.parent / "assets" / "text" / "moss_tts_example_texts.jsonl"
+LANGUAGE_TAG_AUTO = "Auto (omit)"
+LANGUAGE_TAG_CHOICES = [
+    LANGUAGE_TAG_AUTO,
+    "Chinese",
+    "Cantonese",
+    "English",
+    "Arabic",
+    "Czech",
+    "Danish",
+    "Dutch",
+    "Finnish",
+    "French",
+    "German",
+    "Greek",
+    "Hebrew",
+    "Hindi",
+    "Hungarian",
+    "Italian",
+    "Japanese",
+    "Korean",
+    "Macedonian",
+    "Malay",
+    "Persian (Farsi)",
+    "Polish",
+    "Portuguese",
+    "Romanian",
+    "Russian",
+    "Spanish",
+    "Swahili",
+    "Swedish",
+    "Tagalog",
+    "Thai",
+    "Turkish",
+    "Vietnamese",
+]
 
 
 def _parse_example_id(example_id: str) -> tuple[str, int] | None:
@@ -202,11 +238,19 @@ def update_duration_controls(
     )
 
 
+def normalize_language_tag(language_tag: str | None) -> str | None:
+    language_tag = (language_tag or "").strip()
+    if not language_tag or language_tag == LANGUAGE_TAG_AUTO:
+        return None
+    return language_tag
+
+
 def build_conversation(
     text: str,
     reference_audio: str | None,
     mode_with_reference: str,
     expected_tokens: int | None,
+    language_tag: str | None,
     processor,
 ):
     text = (text or "").strip()
@@ -214,6 +258,9 @@ def build_conversation(
         raise ValueError("Please enter text to synthesize.")
 
     user_kwargs = {"text": text}
+    normalized_language = normalize_language_tag(language_tag)
+    if normalized_language is not None:
+        user_kwargs["language"] = normalized_language
     if expected_tokens is not None:
         user_kwargs["tokens"] = int(expected_tokens)
 
@@ -295,6 +342,7 @@ def run_inference(
     mode_with_reference: str,
     duration_control_enabled: bool,
     duration_tokens: int,
+    language_tag: str | None,
     temperature: float,
     top_p: float,
     top_k: int,
@@ -317,6 +365,7 @@ def run_inference(
         reference_audio=reference_audio,
         mode_with_reference=mode_with_reference,
         expected_tokens=expected_tokens,
+        language_tag=language_tag,
         processor=processor,
     )
 
@@ -350,8 +399,10 @@ def run_inference(
     audio_np = audio_np.astype(np.float32, copy=False)
 
     elapsed = time.monotonic() - started_at
+    normalized_language = normalize_language_tag(language_tag)
     status = (
-        f"Done | mode: {mode_name} | elapsed: {elapsed:.2f}s | "
+        f"Done | mode: {mode_name} | language={normalized_language or 'auto'} | "
+        f"elapsed: {elapsed:.2f}s | "
         f"max_new_tokens={int(max_new_tokens)}, "
         f"expected_tokens={expected_tokens if expected_tokens is not None else 'off'}, "
         f"audio_temperature={float(temperature):.2f}, audio_top_p={float(top_p):.2f}, "
@@ -412,8 +463,8 @@ def build_demo(args: argparse.Namespace):
         gr.Markdown(
             """
             <div class="app-card">
-              <div class="app-title">MOSS-TTS</div>
-              <div class="app-subtitle">Minimal UI: Direct Generation, Clone, Continuation, Continuation + Clone</div>
+              <div class="app-title">MOSS-TTS v1.5</div>
+              <div class="app-subtitle">Direct Generation, Clone, Continuation, Continuation + Clone, language tags, and inline pause markers</div>
             </div>
             """
         )
@@ -436,6 +487,12 @@ def build_demo(args: argparse.Namespace):
                     info="If no reference audio is uploaded, Direct Generation will be used automatically.",
                 )
                 mode_hint = gr.Markdown(render_mode_hint(None, MODE_CLONE))
+                language_tag = gr.Dropdown(
+                    choices=LANGUAGE_TAG_CHOICES,
+                    value=LANGUAGE_TAG_AUTO,
+                    label="Language Tag",
+                    info="Optional for v1.5. Set this when the input language is known, especially outside Chinese and English.",
+                )
                 duration_control_enabled = gr.Checkbox(
                     value=False,
                     label="Enable Duration Control (Expected Audio Tokens)",
@@ -542,12 +599,13 @@ def build_demo(args: argparse.Namespace):
         )
 
         run_btn.click(
-            fn=lambda text, reference_audio, mode_with_reference, duration_control_enabled, duration_tokens, temperature, top_p, top_k, repetition_penalty, max_new_tokens: run_inference(
+            fn=lambda text, reference_audio, mode_with_reference, duration_control_enabled, duration_tokens, language_tag, temperature, top_p, top_k, repetition_penalty, max_new_tokens: run_inference(
                 text=text,
                 reference_audio=reference_audio,
                 mode_with_reference=mode_with_reference,
                 duration_control_enabled=duration_control_enabled,
                 duration_tokens=duration_tokens,
+                language_tag=language_tag,
                 temperature=temperature,
                 top_p=top_p,
                 top_k=top_k,
@@ -563,6 +621,7 @@ def build_demo(args: argparse.Namespace):
                 mode_with_reference,
                 duration_control_enabled,
                 duration_tokens,
+                language_tag,
                 temperature,
                 top_p,
                 top_k,

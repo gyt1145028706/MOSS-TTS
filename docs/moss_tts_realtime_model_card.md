@@ -32,8 +32,21 @@ By tightly integrating multi-turn context modeling with low-latency streaming sy
 |---|---:|---:|---:|---:|---:|
 | **MOSS-TTS-Realtime** | 0.8 | 0.6 | 30 | 1.1 | 50 |
 
+### 1.4 Supported Languages
 
-### 1.4 TTFB（Time To First Byte） and RTF（Real-Time Factor）
+MOSS-TTS-Realtime currently follows the original MOSS-TTS family language set and supports **20 languages**:
+
+| Language | Code | Flag | Language | Code | Flag | Language | Code | Flag |
+|---|---|---|---|---|---|---|---|---|
+| Chinese | zh | 🇨🇳 | English | en | 🇺🇸 | German | de | 🇩🇪 |
+| Spanish | es | 🇪🇸 | French | fr | 🇫🇷 | Japanese | ja | 🇯🇵 |
+| Italian | it | 🇮🇹 | Hungarian | hu | 🇭🇺 | Korean | ko | 🇰🇷 |
+| Russian | ru | 🇷🇺 | Persian (Farsi) | fa | 🇮🇷 | Arabic | ar | 🇸🇦 |
+| Polish | pl | 🇵🇱 | Portuguese | pt | 🇵🇹 | Czech | cs | 🇨🇿 |
+| Danish | da | 🇩🇰 | Swedish | sv | 🇸🇪 | | | |
+| Greek | el | 🇬🇷 | Turkish | tr | 🇹🇷 | | | |
+
+### 1.5 TTFB（Time To First Byte） and RTF（Real-Time Factor）
 Note: SDPA + torch.compile were enabled during testing. The following results are tested on a single L20 GPU. 
 
 | Model | TTFB (ms) | RTF |

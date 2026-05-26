@@ -36,6 +36,7 @@ from transformers import (
 )
 
 from .configuration_moss_tts import MossTTSDelayConfig
+from .tts_robust_normalizer_single_script import normalize_tts_text
 
 
 logger = logging.get_logger(__name__)
@@ -383,6 +384,8 @@ class MossTTSDelayProcessor(ProcessorMixin):
     ) -> Dict:
         if reference is not None and not isinstance(reference, list):
             reference = [reference]
+        if text is not None:
+            text = normalize_tts_text(text)
         return UserMessage(
             text=text,
             reference=reference,

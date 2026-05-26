@@ -33,27 +33,30 @@ All tasks share the same basic idea:
 - `audio`: target training audio path; `prepare_data.py` will encode it into `audio_codes`
 - all other fields are mapped directly into `processor.build_user_message(...)`
 
-### 2.1 MOSS-TTS
+### 2.1 MOSS-TTS-v1.5
 
 #### Plain `text, speech` pairs
 
 This format does not require reference audio and is supported directly:
 
 ```jsonl
-{"audio":"./data/utt0001.wav","text":"Actually, I noticed that I am very sensitive to other people's emotions.","language":"en"}
-{"audio":"./data/utt0002.wav","text":"She said she would be here by noon.","language":"en"}
+{"audio":"./data/utt0001.wav","text":"Actually, I noticed that I am very sensitive to other people's emotions.","language":"English"}
+{"audio":"./data/utt0002.wav","text":"She said she would be here by noon.","language":"English"}
 ```
 
 #### Voice cloning / reference-conditioned training
 
+For MOSS-TTS-v1.5, set `language` whenever the language is known. Use language names such as `Chinese`, `English`, or `French`.
+
+
 ```jsonl
-{"audio":"./data/utt0001.wav","text":"Actually, I noticed that I am very sensitive to other people's emotions.","ref_audio":"./data/ref.wav","language":"en"}
-{"audio":"./data/utt0002.wav","text":"She said she would be here by noon.","ref_audio":"./data/ref.wav","language":"en"}
+{"audio":"./data/utt0001.wav","text":"Actually, I noticed that I am very sensitive to other people's emotions.","ref_audio":"./data/ref.wav","language":"English"}
+{"audio":"./data/utt0002.wav","text":"She said she would be here by noon.","ref_audio":"./data/ref.wav","language":"English"}
 ```
 
 ### 2.2 MOSS-TTSD
 
-MOSS-TTSD shares the same `prepare_data.py / sft.py` pipeline as MOSS-TTS, and the format can stay the same.  
+MOSS-TTSD shares the same `prepare_data.py / sft.py` pipeline as MOSS-TTS-v1.5, and the format can stay the same.
 The only difference is that `reference` may be a multi-speaker list, and list elements may be `null`, meaning that speaker has no cloning reference:
 
 ```jsonl
@@ -61,7 +64,7 @@ The only difference is that `reference` may be a multi-speaker list, and list el
   "audio":"./data/dialog_target.wav",
   "text":"[S1] This is the prefix from speaker one. [S2] This is the prefix from speaker two. [S1] Now continue the next turn.",
   "reference":["./data/s1_ref.wav", null],
-  "language":"en"
+  "language":"English"
 }
 ```
 
@@ -109,7 +112,7 @@ MOSS-VoiceGenerator also shares the same training flow, using `text + instructio
 
 ```bash
 python moss_tts_delay/finetuning/prepare_data.py \
-    --model-path OpenMOSS-Team/MOSS-TTS \
+    --model-path OpenMOSS-Team/MOSS-TTS-v1.5 \
     --codec-path OpenMOSS-Team/MOSS-Audio-Tokenizer \
     --device auto \
     --input-jsonl train_raw.jsonl \
@@ -120,7 +123,7 @@ By default, `prepare_data.py` pre-encodes reference audio as well. If you only w
 
 ```bash
 python moss_tts_delay/finetuning/prepare_data.py \
-    --model-path OpenMOSS-Team/MOSS-TTS \
+    --model-path OpenMOSS-Team/MOSS-TTS-v1.5 \
     --codec-path OpenMOSS-Team/MOSS-Audio-Tokenizer \
     --device auto \
     --input-jsonl train_raw.jsonl \
@@ -135,7 +138,7 @@ For example, with 2 nodes and 16 GPUs in total, the dataset is split into 16 sha
 
 ```bash
 accelerate launch --num_processes 16 moss_tts_delay/finetuning/prepare_data.py \
-    --model-path OpenMOSS-Team/MOSS-TTS \
+    --model-path OpenMOSS-Team/MOSS-TTS-v1.5 \
     --codec-path OpenMOSS-Team/MOSS-Audio-Tokenizer \
     --device auto \
     --input-jsonl train_raw.jsonl \
@@ -164,7 +167,7 @@ If your platform already injects distributed communication environment variables
 
 ```bash
 accelerate launch moss_tts_delay/finetuning/sft.py \
-    --model-path OpenMOSS-Team/MOSS-TTS \
+    --model-path OpenMOSS-Team/MOSS-TTS-v1.5 \
     --train-jsonl train_with_codes.jsonl \
     --output-dir output/moss_tts_sft \
     --per-device-batch-size 1 \
@@ -185,7 +188,7 @@ For single-node 8-GPU data parallel training, you can use:
 accelerate launch \
     --config_file moss_tts_delay/finetuning/configs/accelerate_ddp_8gpu.yaml \
     moss_tts_delay/finetuning/sft.py \
-    --model-path OpenMOSS-Team/MOSS-TTS \
+    --model-path OpenMOSS-Team/MOSS-TTS-v1.5 \
     --train-jsonl 'prepared/train_with_codes.rank*.jsonl' \
     --output-dir output/moss_tts_sft_ddp \
     --per-device-batch-size 1 \
@@ -197,7 +200,7 @@ accelerate launch \
 
 ### 4.3 "Model parallel" / parameter-sharded training for the 8B model
 
-For the 8B `MOSS-TTS` model, the following approaches are recommended over naive single-card training:
+For the 8B `MOSS-TTS-v1.5` model, the following approaches are recommended over naive single-card training:
 
 - **FSDP**: shard parameters, gradients, and optimizer states across ranks
 - **DeepSpeed ZeRO-3**: fully shard parameters, gradients, and optimizer states; better suited for larger models and multi-node setups
@@ -208,7 +211,7 @@ For the 8B `MOSS-TTS` model, the following approaches are recommended over naive
 accelerate launch \
     --config_file moss_tts_delay/finetuning/configs/accelerate_fsdp_8b.yaml \
     moss_tts_delay/finetuning/sft.py \
-    --model-path OpenMOSS-Team/MOSS-TTS \
+    --model-path OpenMOSS-Team/MOSS-TTS-v1.5 \
     --train-jsonl 'prepared/train_with_codes.rank*.jsonl' \
     --output-dir output/moss_tts_sft_fsdp \
     --per-device-batch-size 1 \
@@ -224,7 +227,7 @@ accelerate launch \
 accelerate launch \
     --config_file moss_tts_delay/finetuning/configs/accelerate_zero3_8b.yaml \
     moss_tts_delay/finetuning/sft.py \
-    --model-path OpenMOSS-Team/MOSS-TTS \
+    --model-path OpenMOSS-Team/MOSS-TTS-v1.5 \
     --train-jsonl 'prepared/train_with_codes.rank*.jsonl' \
     --output-dir output/moss_tts_sft_zero3 \
     --per-device-batch-size 1 \
@@ -315,7 +318,7 @@ def resolve_attn_implementation(device: str, dtype: torch.dtype) -> str:
 
 model_path = "output/moss_tts_sft/checkpoint-epoch-2"
 reference_audio = "./assets/audio/reference_en_0.mp3"
-text = "This is a quick finetuning smoke test for MOSS-TTS."
+text = "This is a quick finetuning smoke test for MOSS-TTS-v1.5."
 
 device = "cuda" if torch.cuda.is_available() else "cpu"
 dtype = torch.bfloat16 if device == "cuda" else torch.float32
@@ -388,7 +391,7 @@ bash moss_tts_delay/finetuning/run_train.sh
 
 The remaining tasks do not require a separate trainer. You only need to switch the JSONL fields:
 
-- **MOSS-TTS**: use `text`, optionally `ref_audio`
+- **MOSS-TTS-v1.5**: use `text`, optionally `ref_audio`
 - **MOSS-TTSD**: use `text + reference`, where `reference` supports `null`
 - **MOSS-SoundEffect**: use `ambient_sound`
 - **MOSS-VoiceGenerator**: use `text + instruction`
@@ -396,7 +399,7 @@ The remaining tasks do not require a separate trainer. You only need to switch t
 Shared fields:
 
 - `audio`: required target audio
-- `language`, `tokens`, `quality`, `sound_event`, `ambient_sound`, `instruction`: fill them as needed by the task
+- `language`, `tokens`, `quality`, `sound_event`, `ambient_sound`, `instruction`: fill them as needed by the task. For MOSS-TTS-v1.5, prefer language names such as `Chinese`, `English`, or `French`.
 
 Shared scripts:
 
