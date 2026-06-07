@@ -1,5 +1,5 @@
 # coding=utf-8
-"""Modeling code for the MOSS-TTS Local TACv5 HuggingFace release."""
+"""Modeling code for the MOSS-TTS-Local-Transformer-v1.5 HuggingFace release."""
 
 from __future__ import annotations
 
@@ -169,7 +169,7 @@ class MossTTSLocalModel(MossTTSLocalPreTrainedModel):
         config_nq = int(self.config.n_vq)
         if requested is not None and int(requested) != config_nq:
             raise ValueError(
-                "This MOSS-TTS Local TACv5 release is trained with a fixed RVQ depth. "
+                "This MOSS-TTS-Local-Transformer-v1.5 release is trained with a fixed RVQ depth. "
                 f"Expected n_vq={config_nq}, got {int(requested)}."
             )
         return config_nq

@@ -1,5 +1,5 @@
 # coding=utf-8
-"""Configuration for the MOSS-TTS Local TACv5 release."""
+"""Configuration for the MOSS-TTS-Local-Transformer-v1.5 release."""
 
 from __future__ import annotations
 
@@ -130,7 +130,7 @@ class MossTTSLocalConfig(PretrainedConfig):
         self.local_hidden_size = int(self.gpt2_config.hidden_size)
         if self.local_hidden_size != self.hidden_size:
             raise ValueError(
-                "This local TACv5 release expects local hidden size to "
+                "This MOSS-TTS-Local-Transformer-v1.5 release expects local hidden size to "
                 "match Qwen3 hidden size so audio embeddings and heads are tied."
             )
 

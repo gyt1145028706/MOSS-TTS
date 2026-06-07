@@ -1,5 +1,5 @@
 # coding=utf-8
-"""Processor for the MOSS-TTS Local TACv5 HuggingFace release."""
+"""Processor for the MOSS-TTS-Local-Transformer-v1.5 HuggingFace release."""
 
 from __future__ import annotations
 
@@ -296,7 +296,7 @@ class MossTTSLocalProcessor(ProcessorMixin):
         config_nq = int(self.model_config.n_vq)
         if n_vq is not None and int(n_vq) != config_nq:
             raise ValueError(
-                "This MOSS-TTS Local TACv5 release uses the RVQ depth stored in the model config. "
+                "This MOSS-TTS-Local-Transformer-v1.5 release uses the RVQ depth stored in the model config. "
                 f"Expected n_vq={config_nq}, got {int(n_vq)}."
             )
         return config_nq
@@ -373,7 +373,7 @@ class MossTTSLocalProcessor(ProcessorMixin):
         n_vq: int,
     ) -> torch.Tensor:
         if "text" not in message:
-            raise ValueError("Direct local TACv5 generation requires messages built by build_user_message(...).")
+            raise ValueError("Direct MOSS-TTS-Local-Transformer-v1.5 generation requires messages built by build_user_message(...).")
         text = "" if message.get("text") is None else str(message.get("text"))
         prompt_fields = self._prompt_fields_from_user_message(message)
         language_code = message.get("language")
@@ -422,7 +422,7 @@ class MossTTSLocalProcessor(ProcessorMixin):
         if user_message.get("role") != "user" or assistant_message.get("role") != "assistant":
             raise ValueError("continuation mode requires the last two messages to be user, assistant.")
         if "text" not in user_message:
-            raise ValueError("Direct local TACv5 continuation requires user messages built by build_user_message(...).")
+            raise ValueError("Direct MOSS-TTS-Local-Transformer-v1.5 continuation requires user messages built by build_user_message(...).")
 
         text = "" if user_message.get("text") is None else str(user_message.get("text"))
         prompt_fields = self._prompt_fields_from_user_message(user_message)
@@ -439,7 +439,7 @@ class MossTTSLocalProcessor(ProcessorMixin):
         if not audio_codes_list:
             return self._build_text_rows(prompt_token_ids)
         if len(audio_codes_list) != 1:
-            raise ValueError("The local TACv5 continuation path expects exactly one prompt audio item.")
+            raise ValueError("The MOSS-TTS-Local-Transformer-v1.5 continuation path expects exactly one prompt audio item.")
         prompt_audio_codes = audio_codes_list[0]
         return torch.cat(
             [
