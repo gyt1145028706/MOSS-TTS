@@ -6,6 +6,7 @@ from __future__ import annotations
 import argparse
 import json
 import logging
+import mimetypes
 import os
 import queue
 import re
@@ -581,6 +582,20 @@ def create_app(
             }
         )
 
+    @app.get("/api/reference-audio")
+    async def reference_audio(path: str) -> FileResponse:
+        try:
+            reference_root = REFERENCE_AUDIO_DIR.resolve(strict=True)
+            candidate = Path(path).resolve(strict=True)
+        except FileNotFoundError as exc:
+            raise HTTPException(status_code=404, detail="reference audio not found") from exc
+        if candidate != reference_root and reference_root not in candidate.parents:
+            raise HTTPException(status_code=403, detail="reference audio path is not allowed")
+        if not candidate.is_file():
+            raise HTTPException(status_code=404, detail="reference audio not found")
+        media_type = mimetypes.guess_type(str(candidate))[0] or "application/octet-stream"
+        return FileResponse(str(candidate), media_type=media_type, filename=candidate.name)
+
     @app.get("/api/generate-stream/{job_id}/audio")
     async def generate_stream_audio(job_id: str) -> StreamingResponse:
         job = jobs.get(job_id)
@@ -732,7 +747,11 @@ INDEX_HTML = r"""
       position: relative;
       overflow: hidden;
     }
-    .drop-zone input { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
+    .drop-zone input { position: absolute; inset: 0; opacity: 0; cursor: pointer; z-index: 1; }
+    .drop-zone.has-reference { min-height: 0; display: block; padding: 0; }
+    .drop-zone.has-reference input { pointer-events: none; }
+    .drop-zone.has-reference .drop-copy { display: none; }
+    .reference-preview { display: block; width: 100%; position: relative; z-index: 2; }
     .drop-copy { text-align: center; pointer-events: none; }
     .selected-reference { margin-top: 8px; color: var(--muted); font-size: 12px; overflow-wrap: anywhere; }
     .radio-row { display: flex; gap: 8px; flex-wrap: wrap; }
@@ -831,9 +850,10 @@ INDEX_HTML = r"""
 
         <div class="panel">
           <label>Reference Audio (Optional)</label>
-          <div class="drop-zone">
+          <div id="reference-drop-zone" class="drop-zone">
             <input id="prompt-audio" type="file" accept="audio/*,.wav,.mp3,.flac,.m4a,.ogg,.opus,.aac">
             <div class="drop-copy">Drop audio here<br>or<br>click to upload</div>
+            <audio id="reference-audio-preview" class="reference-preview hidden" controls></audio>
           </div>
           <input id="example-audio-path" type="hidden" value="">
           <div id="selected-reference" class="selected-reference">No reference selected.</div>
@@ -985,6 +1005,7 @@ let currentStreamAbortController = null;
 let playbackPaused = false;
 let playbackCompletionTimer = null;
 let currentInitialPlaybackDelaySeconds = 0.08;
+let currentReferenceObjectUrl = null;
 
 function field(id) { return document.getElementById(id); }
 function apiUrl(path) {
@@ -1046,9 +1067,48 @@ function updateReferenceLabel() {
   }
   updateModeHint();
 }
+function clearReferencePreview() {
+  if (currentReferenceObjectUrl) {
+    URL.revokeObjectURL(currentReferenceObjectUrl);
+    currentReferenceObjectUrl = null;
+  }
+  const preview = field("reference-audio-preview");
+  preview.pause();
+  preview.removeAttribute("src");
+  preview.load();
+  preview.classList.add("hidden");
+  field("reference-drop-zone").classList.remove("has-reference");
+}
+function showReferencePreview(src, objectUrl = null) {
+  if (currentReferenceObjectUrl) {
+    URL.revokeObjectURL(currentReferenceObjectUrl);
+    currentReferenceObjectUrl = null;
+  }
+  currentReferenceObjectUrl = objectUrl;
+  const preview = field("reference-audio-preview");
+  preview.src = src;
+  preview.classList.remove("hidden");
+  field("reference-drop-zone").classList.add("has-reference");
+  preview.load();
+}
+function updateReferencePreview() {
+  const file = field("prompt-audio").files[0];
+  const examplePath = field("example-audio-path").value;
+  if (file) {
+    const objectUrl = URL.createObjectURL(file);
+    showReferencePreview(objectUrl, objectUrl);
+    return;
+  }
+  if (examplePath) {
+    showReferencePreview(apiUrl(`api/reference-audio?path=${encodeURIComponent(examplePath)}`));
+    return;
+  }
+  clearReferencePreview();
+}
 function clearReferenceAudio() {
   field("prompt-audio").value = "";
   field("example-audio-path").value = "";
+  clearReferencePreview();
   updateReferenceLabel();
 }
 function updateModeHint() {
@@ -1117,6 +1177,7 @@ function renderExamples() {
       field("example-audio-path").value = example.audio_path;
       if (LANGUAGES.includes(example.language)) field("language").value = example.language;
       field("prompt-audio").value = "";
+      updateReferencePreview();
       updateReferenceLabel();
       updateDurationControls();
       setStatus(`Example selected: ${example.role}`);
@@ -1380,6 +1441,7 @@ field("tokens-control").onchange = updateDurationControls;
 field("text").oninput = updateDurationControls;
 field("prompt-audio").onchange = () => {
   if (field("prompt-audio").files[0]) field("example-audio-path").value = "";
+  updateReferencePreview();
   updateReferenceLabel();
 };
 field("clear-reference").onclick = clearReferenceAudio;
