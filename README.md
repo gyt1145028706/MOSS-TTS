@@ -35,8 +35,8 @@ MOSS‑TTS Family is an open‑source **speech and sound generation model family
 
 
 ## News
-<!-- * 2026.6.7: 🚀 Released [MOSS-TTS-Local-Transformer-v1.5](https://huggingface.co/OpenMOSS-Team/MOSS-TTS-Local-Transformer-v1.5), a 48 kHz stereo local-transformer checkpoint with realtime streaming decode support through [`moss_tts_local_v1.5/`](moss_tts_local_v1.5/README.md). -->
-* 2026.6.7: 🚀 Released [MOSS-TTS-Local-Transformer-v1.5](https://huggingface.co/OpenMOSS-Team/MOSS-TTS-Local-Transformer-v1.5), a real-time streaming TTS model supporting 48 kHz stereo input and output via [`moss_tts_local_v1.5/`](moss_tts_local_v1.5/README.md), featuring stronger multilingual synthesis with language tags, more stable voice cloning, improved long-reference short-text cloning, punctuation-aware prosody, and explicit pause control through `[pause X.Ys]`.
+* 2026.6.8: 🚀 Released [MOSS-TTS-Local-Transformer-v1.5](https://huggingface.co/OpenMOSS-Team/MOSS-TTS-Local-Transformer-v1.5), a real-time streaming TTS model supporting 48 kHz stereo input and output, using [MOSS-Audio-Tokenizer-v2](https://huggingface.co/OpenMOSS-Team/MOSS-Audio-Tokenizer-v2) as the audio tokenizer. It features stronger multilingual synthesis with language tags, more stable voice cloning, improved long-reference short-text cloning, punctuation-aware prosody, and explicit pause control through `[pause X.Ys]`.
+* 2026.6.7: 🚀 Released [MOSS-Audio-Tokenizer-v2](https://huggingface.co/OpenMOSS-Team/MOSS-Audio-Tokenizer-v2), natively supporting 48 kHz stereo input and output. Check out the [MOSS-Audio-Tokenizer repository](https://github.com/OpenMOSS/MOSS-Audio-Tokenizer) for more details!
 * 2026.5.26: 🚀 Released [MOSS-SoundEffect-v2.0](https://huggingface.co/OpenMOSS-Team/MOSS-SoundEffect-v2.0), a new text-to-audio model using a **DiT backbone with the Flow Matching objective**, generating **48 kHz** bilingual sound effects up to **30 seconds** — see [`moss_soundeffect_v2/`](https://github.com/OpenMOSS/MOSS-TTS/tree/main/moss_soundeffect_v2).
 * 2026.5.26: 🚀 Released [MOSS-TTS-v1.5](https://huggingface.co/OpenMOSS-Team/MOSS-TTS-v1.5), with stronger multilingual synthesis when language tags are provided, more stable voice cloning, better long-reference short-text cloning, punctuation-following prosody, and explicit pause control via `[pause X.Ys]`.
 * 2026.5.6: 🚀 MOSS-TTS and MOSS-Audio-Tokenizer now support `mlx-audio`. Visit the [mlx-audio GitHub repository](https://github.com/Blaizzy/mlx-audio) for details.
@@ -148,7 +148,7 @@ We train **MossTTSDelay** and **MossTTSLocal** as complementary baselines under 
 |---|---|---:|---|---|---|
 | **MOSS-TTS-v1.5** | `MossTTSDelay` | 8B | [![Model Card](https://img.shields.io/badge/Model%20Card-View-blue?logo=markdown)](docs/moss_tts_model_card.md) | [![Hugging Face](https://img.shields.io/badge/Huggingface-Model-orange?logo=huggingface)](https://huggingface.co/OpenMOSS-Team/MOSS-TTS-v1.5) | [![ModelScope](https://img.shields.io/badge/ModelScope-Model-7B61FF?logo=modelscope&logoColor=white)](https://modelscope.cn/models/openmoss/MOSS-TTS-v1.5) |
 | **MOSS-TTS 1.0** | `MossTTSDelay` | 8B | [![Model Card](https://img.shields.io/badge/Model%20Card-View-blue?logo=markdown)](docs/moss_tts_model_card.md) | [![Hugging Face](https://img.shields.io/badge/Huggingface-Model-orange?logo=huggingface)](https://huggingface.co/OpenMOSS-Team/MOSS-TTS) | [![ModelScope](https://img.shields.io/badge/ModelScope-Model-7B61FF?logo=modelscope&logoColor=white)](https://modelscope.cn/models/openmoss/MOSS-TTS) |
-| **MOSS-TTS-Local-Transformer-v1.5** | `MossTTSLocal` | 4B | [![Model Card](https://img.shields.io/badge/Model%20Card-View-blue?logo=markdown)](moss_tts_local_v1.5/README.md) | [![Hugging Face](https://img.shields.io/badge/Huggingface-Model-orange?logo=huggingface)](https://huggingface.co/OpenMOSS-Team/MOSS-TTS-Local-Transformer-v1.5) | - |
+| **MOSS-TTS-Local-Transformer-v1.5** | `MossTTSLocal` | 4B | [![Model Card](https://img.shields.io/badge/Model%20Card-View-blue?logo=markdown)](moss_tts_local_v1.5/README.md) | [![Hugging Face](https://img.shields.io/badge/Huggingface-Model-orange?logo=huggingface)](https://huggingface.co/OpenMOSS-Team/MOSS-TTS-Local-Transformer-v1.5) | [![ModelScope](https://img.shields.io/badge/ModelScope-Model-7B61FF?logo=modelscope&logoColor=white)](https://modelscope.cn/models/openmoss/MOSS-TTS-Local-Transformer-v1.5)  |
 | **MOSS-TTS-Local-Transformer** | `MossTTSLocal` | 1.7B | [![Model Card](https://img.shields.io/badge/Model%20Card-View-blue?logo=markdown)](docs/moss_tts_model_card.md) | [![Hugging Face](https://img.shields.io/badge/Huggingface-Model-orange?logo=huggingface)](https://huggingface.co/OpenMOSS-Team/MOSS-TTS-Local-Transformer) | [![ModelScope](https://img.shields.io/badge/ModelScope-Model-7B61FF?logo=modelscope&logoColor=white)](https://modelscope.cn/models/openmoss/MOSS-TTS-Local-Transformer) |
 | **MOSS‑TTSD‑V1.0** | `MossTTSDelay` | 8B | [![Model Card](https://img.shields.io/badge/Model%20Card-View-blue?logo=markdown)](docs/moss_ttsd_model_card.md) | [![Hugging Face](https://img.shields.io/badge/Huggingface-Model-orange?logo=huggingface)](https://huggingface.co/OpenMOSS-Team/MOSS-TTSD-v1.0) | [![ModelScope](https://img.shields.io/badge/ModelScope-Model-7B61FF?logo=modelscope&logoColor=white)](https://modelscope.cn/models/openmoss/MOSS-TTSD-v1.0) |
 | **MOSS‑VoiceGenerator** | `MossTTSDelay` | 1.7B | [![Model Card](https://img.shields.io/badge/Model%20Card-View-blue?logo=markdown)](docs/moss_voice_generator_model_card.md) | [![Hugging Face](https://img.shields.io/badge/Huggingface-Model-orange?logo=huggingface)](https://huggingface.co/OpenMOSS-Team/MOSS-VoiceGenerator) | [![ModelScope](https://img.shields.io/badge/ModelScope-Model-7B61FF?logo=modelscope&logoColor=white)](https://modelscope.cn/models/openmoss/MOSS-VoiceGenerator) |
@@ -158,7 +158,7 @@ We train **MossTTSDelay** and **MossTTSLocal** as complementary baselines under 
 
 ## Supported Languages
 
-MOSS-TTS-v1.5 currently supports **31 languages**. It keeps the 20 languages supported by [MOSS-TTS 1.0](https://huggingface.co/OpenMOSS-Team/MOSS-TTS) and extends multilingual continued training to Cantonese, Dutch, Finnish, Hindi, Macedonian, Malay, Romanian, Swahili, Tagalog, Thai, and Vietnamese.
+MOSS-TTS-v1.5 and MOSS-TTS-Local-Transformer-v1.5 currently supports **31 languages**. It keeps the 20 languages supported by [MOSS-TTS 1.0](https://huggingface.co/OpenMOSS-Team/MOSS-TTS) and extends multilingual continued training to Cantonese, Dutch, Finnish, Hindi, Macedonian, Malay, Romanian, Swahili, Tagalog, Thai, and Vietnamese.
 
 MOSS-TTSD and MOSS-TTS-Realtime follow their own model cards for supported language coverage.
 
@@ -190,7 +190,7 @@ Compared with MOSS-TTS 1.0, v1.5 focuses on these improvements:
 
 ## MOSS-TTS-Local-Transformer-v1.5
 
-**MOSS-TTS-Local-Transformer-v1.5** is the 48 kHz stereo local-transformer release. It uses `MOSS-Audio-Tokenizer-v2` as audio tokenizer, keeps the `AutoProcessor`/`AutoModel` usage pattern, and adds realtime streaming decode examples in [`moss_tts_local_v1.5/`](moss_tts_local_v1.5/README.md).
+**MOSS-TTS-Local-Transformer-v1.5** is the 48 kHz stereo local-transformer release. It uses [MOSS-Audio-Tokenizer-v2](https://huggingface.co/OpenMOSS-Team/MOSS-Audio-Tokenizer-v2) as audio tokenizer, adds realtime streaming decode examples in [`moss_tts_local_v1.5/`](moss_tts_local_v1.5/README.md).
 
 Compared with [MOSS-TTS-Local-Transformer-v1.0](https://huggingface.co/OpenMOSS-Team/MOSS-TTS-Local-Transformer), v1.5 focuses on these improvements:
 
@@ -740,10 +740,12 @@ To learn more about setup, advanced usage, and evaluation metrics, please visit 
 
 ### Model Weights
 
-| Model | Hugging Face | ModelScope |
-|:-----:|:------------:|:----------:|
-| **MOSS-Audio-Tokenizer** | [![Hugging Face](https://img.shields.io/badge/Huggingface-Model-orange?logo=huggingface)](https://huggingface.co/OpenMOSS-Team/MOSS-Audio-Tokenizer) | [![ModelScope](https://img.shields.io/badge/ModelScope-Model-7B61FF?logo=modelscope&logoColor=white)](https://modelscope.cn/models/openmoss/MOSS-Audio-Tokenizer) |
-| **MOSS-Audio-Tokenizer-v2** | [![Hugging Face](https://img.shields.io/badge/Huggingface-Model-orange?logo=huggingface)](https://huggingface.co/OpenMOSS-Team/MOSS-Audio-Tokenizer-v2) | [![ModelScope](https://img.shields.io/badge/ModelScope-Model-7B61FF?logo=modelscope&logoColor=white)](https://modelscope.cn/models/openmoss/MOSS-Audio-Tokenizer-v2)  |
+| Model | Sampling Rate | Channels | Hugging Face | ModelScope |
+|:-----:|:-------------:|:--------:|:------------:|:----------:|
+| **MOSS-Audio-Tokenizer** | 24kHz | 1 channel (mono) | [![HF](https://img.shields.io/badge/HuggingFace-Model-orange?logo=huggingface)](https://huggingface.co/OpenMOSS-Team/MOSS-Audio-Tokenizer) | [![MS](https://img.shields.io/badge/ModelScope-Model-7B61FF?logo=modelscope&logoColor=white)](https://modelscope.cn/models/openmoss/MOSS-Audio-Tokenizer) |
+| **MOSS-Audio-Tokenizer-v2** | 48kHz | 2 channels (stereo) | [![Hugging Face](https://img.shields.io/badge/Huggingface-Model-orange?logo=huggingface)](https://huggingface.co/OpenMOSS-Team/MOSS-Audio-Tokenizer-v2) | [![ModelScope](https://img.shields.io/badge/ModelScope-Model-7B61FF?logo=modelscope&logoColor=white)](https://modelscope.cn/models/openmoss/MOSS-Audio-Tokenizer-v2) |
+| **MOSS-Audio-Tokenizer-Nano** | 48kHz | 2 channels (stereo) | [![Hugging Face](https://img.shields.io/badge/Huggingface-Model-orange?logo=huggingface)](https://huggingface.co/OpenMOSS-Team/MOSS-Audio-Tokenizer-Nano) | [![ModelScope](https://img.shields.io/badge/ModelScope-Model-7B61FF?logo=modelscope&logoColor=white)](https://modelscope.cn/models/openmoss/MOSS-Audio-Tokenizer-Nano) |
+
 
 ### Objective Reconstruction Evaluation
 
