@@ -34,7 +34,7 @@ class MossTTSLocalConfig(PretrainedConfig):
         qwen3_config: Optional[Union[Qwen3Config, Dict[str, Any]]] = None,
         gpt2_config: Optional[Union[GPT2Config, Dict[str, Any]]] = None,
         language_config: Optional[Union[Qwen3Config, Dict[str, Any]]] = None,
-        n_vq: int = 32,
+        n_vq: int = 12,
         audio_vocab_size: int = 1024,
         audio_codebook_sizes: Optional[list[int]] = None,
         audio_pad_token_id: int = 1024,

@@ -24,7 +24,7 @@ for 48 kHz stereo audio encoding and decoding.
 | **Backbone Model** | Initialized from **Qwen3-4B** |
 | **Depth Transformer** | 1 Transformer blocks (Hidden: 2560, FFN: 9728) |
 | **Frame Rate** | 12.5 Hz (1s ≈ 12.5 tokens/blocks) |
-| **Codebooks** | 32 RVQ layers (10-bit each) |
+| **Codebooks** | 12 RVQ layers (10-bit each) |
 | **Generation Mode** | Purely Autoregressive (AR) |
 
 ## Batch Inference
