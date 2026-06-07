@@ -499,8 +499,8 @@ def create_app(
         seed: int = Form(1234),
         tokens_control: int = Form(0),
         tokens: int = Form(0),
-        temperature: float = Form(1.2),
-        top_p: float = Form(1.0),
+        temperature: float = Form(1.7),
+        top_p: float = Form(0.8),
         top_k: int = Form(25),
         repetition_penalty: float = Form(1.0),
         example_audio_path: str = Form(""),
@@ -559,8 +559,8 @@ def create_app(
             tokens=_safe_int(tokens, default=0, minimum=0),
             max_new_frames=max_new_tokens,
             do_sample=True,
-            temperature=_safe_float(temperature, default=1.2, minimum=0.1, maximum=3.0),
-            top_p=_safe_float(top_p, default=1.0, minimum=0.1, maximum=1.0),
+            temperature=_safe_float(temperature, default=1.7, minimum=0.1, maximum=3.0),
+            top_p=_safe_float(top_p, default=0.8, minimum=0.1, maximum=1.0),
             top_k=_safe_int(top_k, default=25, minimum=1, maximum=200),
             repetition_penalty=_safe_float(repetition_penalty, default=1.0, minimum=0.8, maximum=2.0),
             seed=None if int(seed) < 0 else int(seed),
@@ -875,18 +875,18 @@ INDEX_HTML = r"""
             <div class="control-row" data-pair="temperature">
               <div>
                 <div class="range-label">temperature</div>
-                <input id="temperature-range" type="range" min="0.1" max="3" step="0.05" value="1.2">
+                <input id="temperature-range" type="range" min="0.1" max="3" step="0.05" value="1.7">
                 <div class="range-minmax"><span>0.1</span><span>3</span></div>
               </div>
-              <input id="temperature" type="number" min="0.1" max="3" step="0.05" value="1.2">
+              <input id="temperature" type="number" min="0.1" max="3" step="0.05" value="1.7">
             </div>
             <div class="control-row" data-pair="top-p">
               <div>
                 <div class="range-label">top_p</div>
-                <input id="top-p-range" type="range" min="0.1" max="1" step="0.01" value="1">
+                <input id="top-p-range" type="range" min="0.1" max="1" step="0.01" value="0.8">
                 <div class="range-minmax"><span>0.1</span><span>1</span></div>
               </div>
-              <input id="top-p" type="number" min="0.1" max="1" step="0.01" value="1">
+              <input id="top-p" type="number" min="0.1" max="1" step="0.01" value="0.8">
             </div>
             <div class="control-row" data-pair="top-k">
               <div>
@@ -899,10 +899,10 @@ INDEX_HTML = r"""
             <div class="control-row" data-pair="repetition-penalty">
               <div>
                 <div class="range-label">repetition_penalty</div>
-                <input id="repetition-penalty-range" type="range" min="0.8" max="2" step="0.05" value="1">
+                <input id="repetition-penalty-range" type="range" min="0.8" max="2" step="0.05" value="1.0">
                 <div class="range-minmax"><span>0.8</span><span>2</span></div>
               </div>
-              <input id="repetition-penalty" type="number" min="0.8" max="2" step="0.05" value="1">
+              <input id="repetition-penalty" type="number" min="0.8" max="2" step="0.05" value="1.0">
             </div>
             <div class="control-row" data-pair="max-new-tokens">
               <div>

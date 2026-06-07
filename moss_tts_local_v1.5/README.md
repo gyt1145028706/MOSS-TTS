@@ -3,7 +3,7 @@
 This folder contains the public remote-code implementation and realtime
 streaming examples for `OpenMOSS-Team/MOSS-TTS-Local-Transformer-v1.5`.
 
-MOSS-TTS Local Transformer v1.5 uses the `MossTTSLocal` architecture with
+MOSS-TTS-Local-Transformer-v1.5 uses the `MossTTSLocal` architecture with
 time-synchronous RVQ frame generation and `OpenMOSS-Team/MOSS-Audio-Tokenizer-v2` as the audio tokenizer
 for 48 kHz stereo audio encoding and decoding.
 
@@ -142,18 +142,6 @@ with torch.no_grad():
 ```
 
 ## Realtime Streaming Decode
-
-Run a streaming smoke test:
-
-```bash
-python moss_tts_local_v1.5/streaming.py \
-  --model-dir OpenMOSS-Team/MOSS-TTS-Local-Transformer-v1.5 \
-  --codec-dir OpenMOSS-Team/MOSS-Audio-Tokenizer-v2 \
-  --tts-device cuda:0 \
-  --codec-device cuda:1 \
-  --text "这是一个实时流式推理测试。" \
-  --language Chinese
-```
 
 Launch the realtime browser app. It uses FastAPI plus Web Audio playback so
 decoded PCM chunks can be played while generation is still running:
