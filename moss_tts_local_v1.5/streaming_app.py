@@ -420,13 +420,14 @@ def create_app(
             except queue.Full:
                 continue
 
-    def _run_job(job: StreamingJob, request: StreamingRequest, mode_name: str) -> None:
+    def _run_job(job: StreamingJob, request: StreamingRequest, mode_name: str, streaming_generation: bool) -> None:
         try:
             job.update(
                 state="loading_runtime",
                 started_at=time.time(),
                 max_new_tokens=int(request.max_new_frames),
                 mode=mode_name,
+                streaming_generation=streaming_generation,
             )
             runtime = runtime_manager.get()
             job.update(state="running", sample_rate=runtime.sample_rate, channels=2, n_vq=runtime.n_vq)
@@ -444,7 +445,8 @@ def create_app(
                     with job.status_lock:
                         if job.status.get("first_audio_at") is None:
                             job.status["first_audio_at"] = time.time()
-                    _put_stream_audio(job, _pcm16le_bytes(waveform))
+                    if streaming_generation:
+                        _put_stream_audio(job, _pcm16le_bytes(waveform))
                     job.update(
                         generated_frames=event.data.get("generated_frames", job.snapshot().get("generated_frames", 0)),
                         emitted_audio_seconds=event.data.get("emitted_audio_seconds", 0.0),
@@ -504,6 +506,7 @@ def create_app(
         top_p: float = Form(0.8),
         top_k: int = Form(25),
         repetition_penalty: float = Form(1.0),
+        streaming_generation: int = Form(1),
         example_audio_path: str = Form(""),
         prompt_audio: UploadFile | None = File(None),
     ) -> JSONResponse:
@@ -550,6 +553,7 @@ def create_app(
             maximum=DEFAULT_MAX_NEW_TOKENS,
         )
         codec_chunk_frames = _safe_int(codec_chunk_frames, default=8, minimum=0, maximum=32)
+        streaming_generation_enabled = bool(_safe_int(streaming_generation, default=1, minimum=0, maximum=1))
         request = StreamingRequest(
             text=text,
             mode="continuation" if not prompt_audio_path or mode in {"continuation", "continuation_clone"} else "voice_clone",
@@ -568,7 +572,7 @@ def create_app(
             codec_chunk_frames=codec_chunk_frames,
         )
         job = jobs.create()
-        thread = threading.Thread(target=_run_job, args=(job, request, mode_name), daemon=True)
+        thread = threading.Thread(target=_run_job, args=(job, request, mode_name, streaming_generation_enabled), daemon=True)
         job.thread = thread
         thread.start()
         return JSONResponse(
@@ -953,6 +957,7 @@ INDEX_HTML = r"""
               </div>
               <input id="seed" type="number" min="-1" step="1" value="__DEFAULT_SEED__">
             </div>
+            <label style="margin-top: 14px;"><input id="streaming-generation" type="checkbox" checked> Enable Streaming Generation</label>
           </div>
         </details>
 
@@ -1003,6 +1008,7 @@ let statusTimer = null;
 let runtimeReady = false;
 let generationActive = false;
 let currentStreamAbortController = null;
+let currentStreamingGenerationEnabled = true;
 let playbackPaused = false;
 let playbackCompletionTimer = null;
 let currentInitialPlaybackDelaySeconds = 0.08;
@@ -1399,10 +1405,16 @@ async function pollStatus(jobId) {
     const result = await fetchJson(apiUrl(`api/generate-stream/${jobId}/result`));
     field("download").href = apiUrl(`api/generate-stream/${jobId}/result-audio`);
     field("download").style.display = "inline";
-    field("audio-output").src = apiUrl(`api/generate-stream/${jobId}/result-audio`);
-    field("audio-output").removeAttribute("disabled");
-    field("audio-output").load();
+    const outputAudio = field("audio-output");
+    outputAudio.src = apiUrl(`api/generate-stream/${jobId}/result-audio`);
+    outputAudio.removeAttribute("disabled");
+    outputAudio.load();
     setStatus({ ...status, result });
+    if (!currentStreamingGenerationEnabled) {
+      outputAudio.play().catch(err => {
+        setStatus({ ...status, result, autoplay_error: String(err) });
+      });
+    }
     setGenerationActive(false);
   }
   if (status.state === "error" || status.state === "closed") {
@@ -1435,6 +1447,8 @@ field("start").onclick = async () => {
   form.append("top_p", field("top-p").value);
   form.append("top_k", field("top-k").value);
   form.append("repetition_penalty", field("repetition-penalty").value);
+  currentStreamingGenerationEnabled = field("streaming-generation").checked;
+  form.append("streaming_generation", currentStreamingGenerationEnabled ? "1" : "0");
   form.append("example_audio_path", field("example-audio-path").value);
   const file = field("prompt-audio").files[0];
   if (file) form.append("prompt_audio", file);
@@ -1447,11 +1461,18 @@ field("start").onclick = async () => {
     if (!response.ok) throw new Error(await response.text());
     const start = await response.json();
     currentJob = start.job_id;
-    currentStreamAbortController = new AbortController();
-    await prepareRealtimePlayback(start.sample_rate || 48000);
-    streamAudio(currentJob, start.sample_rate || 48000, start.channels || 2).catch(err => {
-      if (!(err && String(err).includes("AbortError"))) setStatus(String(err));
-    });
+    currentInitialPlaybackDelaySeconds = resolveInitialPlaybackDelaySeconds();
+    if (currentStreamingGenerationEnabled) {
+      currentStreamAbortController = new AbortController();
+      await prepareRealtimePlayback(start.sample_rate || 48000);
+      streamAudio(currentJob, start.sample_rate || 48000, start.channels || 2).catch(err => {
+        if (!(err && String(err).includes("AbortError"))) setStatus(String(err));
+      });
+    } else {
+      currentStreamAbortController = null;
+      resetRealtimePlaybackBuffer();
+      updatePauseButtonState();
+    }
     if (statusTimer) clearInterval(statusTimer);
     statusTimer = setInterval(() => pollStatus(currentJob), 500);
     pollStatus(currentJob);
