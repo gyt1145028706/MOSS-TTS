@@ -388,7 +388,7 @@ def create_app(
     @asynccontextmanager
     async def lifespan(_: FastAPI):
         if preload:
-            runtime_manager.preload_async()
+            runtime_manager.get()
         yield
 
     app = FastAPI(title="MOSS-TTS Local v1.5 Realtime Streaming", lifespan=lifespan)
@@ -748,10 +748,11 @@ INDEX_HTML = r"""
       overflow: hidden;
     }
     .drop-zone input { position: absolute; inset: 0; opacity: 0; cursor: pointer; z-index: 1; }
-    .drop-zone.has-reference { min-height: 0; display: block; padding: 0; }
-    .drop-zone.has-reference input { pointer-events: none; }
+    .drop-zone.has-reference { min-height: 0; display: block; padding: 0; overflow: visible; }
+    .drop-zone.has-reference input { display: none; }
     .drop-zone.has-reference .drop-copy { display: none; }
-    .reference-preview { display: block; width: 100%; position: relative; z-index: 2; }
+    .reference-preview { display: block; width: 100%; position: relative; z-index: 2; pointer-events: auto; }
+    audio[disabled] { opacity: 0.55; pointer-events: none; }
     .drop-copy { text-align: center; pointer-events: none; }
     .selected-reference { margin-top: 8px; color: var(--muted); font-size: 12px; overflow-wrap: anywhere; }
     .radio-row { display: flex; gap: 8px; flex-wrap: wrap; }
@@ -965,7 +966,7 @@ INDEX_HTML = r"""
       <div class="stack">
         <div class="panel audio-panel">
           <label>Output Audio</label>
-          <audio id="audio-output" controls></audio>
+          <audio id="audio-output" controls disabled></audio>
           <a id="download" class="download" href="#">Download final wav</a>
         </div>
         <div class="panel">
@@ -1360,6 +1361,8 @@ async function pollStatus(jobId) {
     field("download").href = apiUrl(`api/generate-stream/${jobId}/result-audio`);
     field("download").style.display = "inline";
     field("audio-output").src = apiUrl(`api/generate-stream/${jobId}/result-audio`);
+    field("audio-output").removeAttribute("disabled");
+    field("audio-output").load();
     setStatus({ ...status, result });
     setGenerationActive(false);
   }
@@ -1376,6 +1379,7 @@ field("start").onclick = async () => {
   field("bar").style.width = "0%";
   field("summary").textContent = "";
   field("audio-output").pause();
+  field("audio-output").setAttribute("disabled", "disabled");
   field("audio-output").removeAttribute("src");
   field("audio-output").load();
   const form = new FormData();
