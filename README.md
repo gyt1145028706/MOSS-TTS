@@ -35,6 +35,8 @@ MOSS‑TTS Family is an open‑source **speech and sound generation model family
 
 
 ## News
+<!-- * 2026.6.7: 🚀 Released [MOSS-TTS-Local-Transformer-v1.5](https://huggingface.co/OpenMOSS-Team/MOSS-TTS-Local-Transformer-v1.5), a 48 kHz stereo local-transformer checkpoint with realtime streaming decode support through [`moss_tts_local_v1.5/`](moss_tts_local_v1.5/README.md). -->
+* 2026.6.7: 🚀 Released [MOSS-TTS-Local-Transformer-v1.5](https://huggingface.co/OpenMOSS-Team/MOSS-TTS-Local-Transformer-v1.5), a real-time streaming TTS model supporting 48 kHz stereo input and output via [`moss_tts_local_v1.5/`](moss_tts_local_v1.5/README.md), featuring stronger multilingual synthesis with language tags, more stable voice cloning, improved long-reference short-text cloning, punctuation-aware prosody, and explicit pause control through `[pause X.Ys]`.
 * 2026.5.26: 🚀 Released [MOSS-SoundEffect-v2.0](https://huggingface.co/OpenMOSS-Team/MOSS-SoundEffect-v2.0), a new text-to-audio model using a **DiT backbone with the Flow Matching objective**, generating **48 kHz** bilingual sound effects up to **30 seconds** — see [`moss_soundeffect_v2/`](https://github.com/OpenMOSS/MOSS-TTS/tree/main/moss_soundeffect_v2).
 * 2026.5.26: 🚀 Released [MOSS-TTS-v1.5](https://huggingface.co/OpenMOSS-Team/MOSS-TTS-v1.5), with stronger multilingual synthesis when language tags are provided, more stable voice cloning, better long-reference short-text cloning, punctuation-following prosody, and explicit pause control via `[pause X.Ys]`.
 * 2026.5.6: 🚀 MOSS-TTS and MOSS-Audio-Tokenizer now support `mlx-audio`. Visit the [mlx-audio GitHub repository](https://github.com/Blaizzy/mlx-audio) for details.
@@ -70,6 +72,7 @@ MOSS‑TTS Family is an open‑source **speech and sound generation model family
   - [Released Models](#released-models)
   - [Supported Languages](#supported-languages)
   - [MOSS-TTS-v1.5](#moss-tts-v15)
+  - [MOSS-TTS-Local-Transformer-v1.5](#moss-tts-local-transformer-v15)
   - [Quickstart](#quickstart)
     - [OpenClaw API Skills](#openclaw-api-skills)
     - [Environment Setup](#environment-setup)
@@ -145,6 +148,7 @@ We train **MossTTSDelay** and **MossTTSLocal** as complementary baselines under 
 |---|---|---:|---|---|---|
 | **MOSS-TTS-v1.5** | `MossTTSDelay` | 8B | [![Model Card](https://img.shields.io/badge/Model%20Card-View-blue?logo=markdown)](docs/moss_tts_model_card.md) | [![Hugging Face](https://img.shields.io/badge/Huggingface-Model-orange?logo=huggingface)](https://huggingface.co/OpenMOSS-Team/MOSS-TTS-v1.5) | [![ModelScope](https://img.shields.io/badge/ModelScope-Model-7B61FF?logo=modelscope&logoColor=white)](https://modelscope.cn/models/openmoss/MOSS-TTS-v1.5) |
 | **MOSS-TTS 1.0** | `MossTTSDelay` | 8B | [![Model Card](https://img.shields.io/badge/Model%20Card-View-blue?logo=markdown)](docs/moss_tts_model_card.md) | [![Hugging Face](https://img.shields.io/badge/Huggingface-Model-orange?logo=huggingface)](https://huggingface.co/OpenMOSS-Team/MOSS-TTS) | [![ModelScope](https://img.shields.io/badge/ModelScope-Model-7B61FF?logo=modelscope&logoColor=white)](https://modelscope.cn/models/openmoss/MOSS-TTS) |
+| **MOSS-TTS-Local-Transformer-v1.5** | `MossTTSLocal` | 4B | [![Model Card](https://img.shields.io/badge/Model%20Card-View-blue?logo=markdown)](moss_tts_local_v1.5/README.md) | [![Hugging Face](https://img.shields.io/badge/Huggingface-Model-orange?logo=huggingface)](https://huggingface.co/OpenMOSS-Team/MOSS-TTS-Local-Transformer-v1.5) | - |
 | **MOSS-TTS-Local-Transformer** | `MossTTSLocal` | 1.7B | [![Model Card](https://img.shields.io/badge/Model%20Card-View-blue?logo=markdown)](docs/moss_tts_model_card.md) | [![Hugging Face](https://img.shields.io/badge/Huggingface-Model-orange?logo=huggingface)](https://huggingface.co/OpenMOSS-Team/MOSS-TTS-Local-Transformer) | [![ModelScope](https://img.shields.io/badge/ModelScope-Model-7B61FF?logo=modelscope&logoColor=white)](https://modelscope.cn/models/openmoss/MOSS-TTS-Local-Transformer) |
 | **MOSS‑TTSD‑V1.0** | `MossTTSDelay` | 8B | [![Model Card](https://img.shields.io/badge/Model%20Card-View-blue?logo=markdown)](docs/moss_ttsd_model_card.md) | [![Hugging Face](https://img.shields.io/badge/Huggingface-Model-orange?logo=huggingface)](https://huggingface.co/OpenMOSS-Team/MOSS-TTSD-v1.0) | [![ModelScope](https://img.shields.io/badge/ModelScope-Model-7B61FF?logo=modelscope&logoColor=white)](https://modelscope.cn/models/openmoss/MOSS-TTSD-v1.0) |
 | **MOSS‑VoiceGenerator** | `MossTTSDelay` | 1.7B | [![Model Card](https://img.shields.io/badge/Model%20Card-View-blue?logo=markdown)](docs/moss_voice_generator_model_card.md) | [![Hugging Face](https://img.shields.io/badge/Huggingface-Model-orange?logo=huggingface)](https://huggingface.co/OpenMOSS-Team/MOSS-VoiceGenerator) | [![ModelScope](https://img.shields.io/badge/ModelScope-Model-7B61FF?logo=modelscope&logoColor=white)](https://modelscope.cn/models/openmoss/MOSS-VoiceGenerator) |
@@ -178,6 +182,19 @@ MOSS-TTSD and MOSS-TTS-Realtime follow their own model cards for supported langu
 
 Compared with MOSS-TTS 1.0, v1.5 focuses on these improvements:
 
+- **Stronger multilingual synthesis with language tags**: when the language is known, set it in `processor.build_user_message(text=text, language="French")` or the equivalent API field.
+- **More stable voice cloning**: v1.5 improves speaker similarity and reduces cloning variance across repeated generations.
+- **Better long-reference, short-text cloning**: v1.5 handles reference audio that is much longer than the target text more reliably.
+- **More stable punctuation-following prosody**: v1.5 follows punctuation-driven pauses more closely, especially in long sentences.
+- **Explicit pause control**: use inline pause markers such as `[pause 3.2s]`, for example `我今天学习了一首中国的古诗，它的名字是[pause 3.2s]静夜思！`.
+
+## MOSS-TTS-Local-Transformer-v1.5
+
+**MOSS-TTS-Local-Transformer-v1.5** is the 48 kHz stereo local-transformer release. It uses `MOSS-Audio-Tokenizer-v2` as audio tokenizer, keeps the `AutoProcessor`/`AutoModel` usage pattern, and adds realtime streaming decode examples in [`moss_tts_local_v1.5/`](moss_tts_local_v1.5/README.md).
+
+Compared with [MOSS-TTS-Local-Transformer-v1.0](https://huggingface.co/OpenMOSS-Team/MOSS-TTS-Local-Transformer), v1.5 focuses on these improvements:
+
+- **Higher-fidelity stereo audio modeling**: v1.5 uses [MOSS-Audio-Tokenizer-v2](https://huggingface.co/OpenMOSS-Team/MOSS-Audio-Tokenizer-v2) as the audio tokenizer, supporting native 48 kHz stereo input and output for richer spatial detail and more natural perceived audio quality.
 - **Stronger multilingual synthesis with language tags**: when the language is known, set it in `processor.build_user_message(text=text, language="French")` or the equivalent API field.
 - **More stable voice cloning**: v1.5 improves speaker similarity and reduces cloning variance across repeated generations.
 - **Better long-reference, short-text cloning**: v1.5 handles reference audio that is much longer than the target text more reliably.
@@ -274,11 +291,12 @@ Notes:
 <a id="moss-tts-basic-usage"></a>
 ### MOSS‑TTS Basic Usage
 
-If you prefer Gradio demos, we provide 4 scripts for the main models:
+If you prefer browser demos, we provide scripts for the main models:
 
 | Model | Script |
 |---|---|
 | MOSS-TTS | [clis/moss_tts_app.py](clis/moss_tts_app.py) |
+| MOSS-TTS-Local-Transformer-v1.5 | [moss_tts_local_v1.5/streaming_app.py](moss_tts_local_v1.5/streaming_app.py) |
 | MOSS-TTSD | [clis/moss_ttsd_app.py](clis/moss_ttsd_app.py) |
 | MOSS-VoiceGenerator | [clis/moss_voice_generator_app.py](clis/moss_voice_generator_app.py) |
 | MOSS-SoundEffect | [clis/moss_sound_effect_app.py](clis/moss_sound_effect_app.py) |
@@ -378,7 +396,7 @@ model = AutoModel.from_pretrained(
     pretrained_model_name_or_path,
     trust_remote_code=True,
     attn_implementation=attn_implementation,
-    torch_dtype=dtype,
+    dtype=dtype,
 ).to(device)
 model.eval()
 
@@ -404,11 +422,17 @@ with torch.no_grad():
             audio = message.audio_codes_list[0]
             out_path = save_dir / f"sample{sample_idx}.wav"
             sample_idx += 1
-            torchaudio.save(out_path, audio.unsqueeze(0), processor.model_config.sampling_rate)
+            if audio.ndim == 1:
+                audio = audio.unsqueeze(0)
+            torchaudio.save(
+                str(out_path),
+                audio.detach().cpu().to(torch.float32),
+                processor.model_config.sampling_rate,
+            )
 
 ```
 
-For each model’s full usage, please refer to its corresponding model card.
+For each model's full usage, please refer to its corresponding model card. For the 48 kHz stereo local-transformer v1.5 checkpoint and realtime streaming decode, see [`moss_tts_local_v1.5/`](moss_tts_local_v1.5/README.md).
 
 <a id="fine-tuning"></a>
 ## Fine-Tuning
@@ -719,6 +743,7 @@ To learn more about setup, advanced usage, and evaluation metrics, please visit 
 | Model | Hugging Face | ModelScope |
 |:-----:|:------------:|:----------:|
 | **MOSS-Audio-Tokenizer** | [![Hugging Face](https://img.shields.io/badge/Huggingface-Model-orange?logo=huggingface)](https://huggingface.co/OpenMOSS-Team/MOSS-Audio-Tokenizer) | [![ModelScope](https://img.shields.io/badge/ModelScope-Model-7B61FF?logo=modelscope&logoColor=white)](https://modelscope.cn/models/openmoss/MOSS-Audio-Tokenizer) |
+| **MOSS-Audio-Tokenizer-v2** | [![Hugging Face](https://img.shields.io/badge/Huggingface-Model-orange?logo=huggingface)](https://huggingface.co/OpenMOSS-Team/MOSS-Audio-Tokenizer-v2) | [![ModelScope](https://img.shields.io/badge/ModelScope-Model-7B61FF?logo=modelscope&logoColor=white)](https://modelscope.cn/models/openmoss/MOSS-Audio-Tokenizer-v2)  |
 
 ### Objective Reconstruction Evaluation
 
