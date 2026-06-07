@@ -78,7 +78,7 @@ class StreamingRequest:
     text_top_p: float = 1.0
     text_top_k: int = 50
     seed: Optional[int] = None
-    codec_chunk_frames: int = 0
+    codec_chunk_frames: int = 8
 
 
 @dataclass
@@ -676,20 +676,17 @@ def _decode_budget_from_stream_state(
             return 6
         return 8
 
-    # Emit the first decode request as soon as one frame is available. This
-    # shaves the initial codec wait from about four frames to one frame.
+    # Lower-depth models can decode sooner than RVQ32, but a one-frame
+    # first packet is only 80 ms at 12.5 fps and tends to underrun browser
+    # playback. Start with four frames so the first PCM packet carries about
+    # 320 ms of audio; after audio is flowing, switch back to the lead ladder.
     if not first_decode_submitted:
-        return 1
+        return 4
 
     budget = _smooth_decode_budget_from_lead(lead_seconds)
 
-    # After the first one-frame decode is in flight, do not jump directly to a
-    # four-frame chunk. The second request is two frames, then the lead-based
-    # ladder can increase gradually if TTS generation is already ahead.
     if not first_audio_emitted:
-        if int(decode_chunks_submitted) <= 1:
-            return 2
-        return min(4, max(2, budget))
+        return 4
 
     # Once audio is flowing, use lead as a smooth latency/throughput knob:
     # low or negative lead decodes short chunks to avoid audible gaps; healthy
@@ -1057,7 +1054,7 @@ def _parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--codec-chunk-frames",
         type=int,
-        default=0,
+        default=8,
         help="Codec decode chunk size. 0 uses adaptive streaming scheduling.",
     )
     parser.add_argument("--seed", type=int, default=1234)

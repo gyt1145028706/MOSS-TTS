@@ -396,7 +396,7 @@ def create_app(
     @app.get("/", response_class=HTMLResponse)
     async def index() -> HTMLResponse:
         defaults = {
-            "text": "这是一个实时流式推理测试。",
+            "text": "欢迎关注模思智能、上海创智学院与复旦大学自然语言处理实验室。",
             "max_new_tokens": DEFAULT_MAX_NEW_TOKENS,
             "seed": 1234,
         }
@@ -496,7 +496,7 @@ def create_app(
         text: str = Form(...),
         prompt_text: str = Form(""),
         max_new_tokens: int = Form(DEFAULT_MAX_NEW_TOKENS),
-        codec_chunk_frames: int = Form(0),
+        codec_chunk_frames: int = Form(8),
         seed: int = Form(1234),
         tokens_control: int = Form(0),
         tokens: int = Form(0),
@@ -549,7 +549,7 @@ def create_app(
             minimum=1,
             maximum=DEFAULT_MAX_NEW_TOKENS,
         )
-        codec_chunk_frames = _safe_int(codec_chunk_frames, default=0, minimum=0, maximum=32)
+        codec_chunk_frames = _safe_int(codec_chunk_frames, default=8, minimum=0, maximum=32)
         request = StreamingRequest(
             text=text,
             mode="continuation" if not prompt_audio_path or mode in {"continuation", "continuation_clone"} else "voice_clone",
@@ -936,10 +936,10 @@ INDEX_HTML = r"""
             <div class="control-row" data-pair="codec-chunk-frames">
               <div>
                 <div class="range-label">Codec Chunk Frames (0=auto)</div>
-                <input id="codec-chunk-frames-range" type="range" min="0" max="32" step="1" value="0">
+                <input id="codec-chunk-frames-range" type="range" min="0" max="32" step="1" value="8">
                 <div class="range-minmax"><span>0</span><span>32</span></div>
               </div>
-              <input id="codec-chunk-frames" type="number" min="0" max="32" step="1" value="0">
+              <input id="codec-chunk-frames" type="number" min="0" max="32" step="1" value="8">
             </div>
             <div class="control-row">
               <label for="initial-playback-delay">Initial Playback Delay (s)</label>
@@ -1006,6 +1006,10 @@ let currentStreamAbortController = null;
 let playbackPaused = false;
 let playbackCompletionTimer = null;
 let currentInitialPlaybackDelaySeconds = 0.08;
+const MIN_INITIAL_PLAYBACK_BUFFER_SECONDS = 0.32;
+let pendingRealtimePcmChunks = [];
+let pendingRealtimePcmSeconds = 0;
+let realtimePlaybackStarted = false;
 let currentReferenceObjectUrl = null;
 
 function field(id) { return document.getElementById(id); }
@@ -1241,6 +1245,38 @@ function setGenerationActive(active) {
   generationActive = Boolean(active);
   field("start").disabled = generationActive;
 }
+function resetRealtimePlaybackBuffer() {
+  pendingRealtimePcmChunks = [];
+  pendingRealtimePcmSeconds = 0;
+  realtimePlaybackStarted = false;
+}
+function pcmChunkDurationSeconds(bytes, sampleRate, channels) {
+  const bytesPerFrame = Math.max(1, Number(channels || 2) * 2);
+  const frames = Math.floor(bytes.byteLength / bytesPerFrame);
+  const resolvedSampleRate = Math.max(1, Number(sampleRate || 48000));
+  return frames / resolvedSampleRate;
+}
+function flushPendingRealtimePcmChunks() {
+  if (pendingRealtimePcmChunks.length === 0) return;
+  const chunks = pendingRealtimePcmChunks;
+  pendingRealtimePcmChunks = [];
+  pendingRealtimePcmSeconds = 0;
+  realtimePlaybackStarted = true;
+  for (const chunk of chunks) {
+    schedulePcmChunk(chunk.bytes, chunk.sampleRate, chunk.channels);
+  }
+}
+function enqueueRealtimePcmChunk(bytes, sampleRate, channels) {
+  if (realtimePlaybackStarted) {
+    schedulePcmChunk(bytes, sampleRate, channels);
+    return;
+  }
+  pendingRealtimePcmChunks.push({ bytes, sampleRate, channels });
+  pendingRealtimePcmSeconds += pcmChunkDurationSeconds(bytes, sampleRate, channels);
+  if (pendingRealtimePcmSeconds >= MIN_INITIAL_PLAYBACK_BUFFER_SECONDS) {
+    flushPendingRealtimePcmChunks();
+  }
+}
 function pcm16ToAudioBuffer(bytes, sampleRate, channels) {
   const bytesPerFrame = channels * 2;
   const frames = Math.floor(bytes.byteLength / bytesPerFrame);
@@ -1260,7 +1296,7 @@ function schedulePcmChunk(bytes, sampleRate, channels) {
     const AudioContextCtor = window.AudioContext || window.webkitAudioContext;
     if (!AudioContextCtor) throw new Error("This browser does not support Web Audio streaming playback.");
     audioContext = new AudioContextCtor({ sampleRate });
-    nextPlaybackTime = audioContext.currentTime + currentInitialPlaybackDelaySeconds;
+    nextPlaybackTime = 0;
     playbackPaused = false;
     updatePauseButtonState();
   }
@@ -1279,7 +1315,8 @@ async function prepareRealtimePlayback(sampleRate) {
   audioContext = new AudioContextCtor({ sampleRate });
   await audioContext.resume();
   currentInitialPlaybackDelaySeconds = resolveInitialPlaybackDelaySeconds();
-  nextPlaybackTime = audioContext.currentTime + currentInitialPlaybackDelaySeconds;
+  nextPlaybackTime = 0;
+  resetRealtimePlaybackBuffer();
   playbackPaused = false;
   updatePauseButtonState();
 }
@@ -1303,6 +1340,7 @@ async function closeRealtimeStream() {
   }
   playbackPaused = false;
   nextPlaybackTime = 0;
+  resetRealtimePlaybackBuffer();
   updatePauseButtonState();
   setGenerationActive(false);
 }
@@ -1344,10 +1382,11 @@ async function streamAudio(jobId, sampleRate, channels) {
         remainder = merged;
         continue;
       }
-      schedulePcmChunk(merged.subarray(0, alignedLength), resolvedSampleRate, resolvedChannels);
+      enqueueRealtimePcmChunk(merged.subarray(0, alignedLength), resolvedSampleRate, resolvedChannels);
       remainder = merged.subarray(alignedLength);
     }
   }
+  flushPendingRealtimePcmChunks();
   monitorPlaybackCompletion();
 }
 async function pollStatus(jobId) {
