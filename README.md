@@ -296,7 +296,7 @@ If you prefer browser demos, we provide scripts for the main models:
 | Model | Script |
 |---|---|
 | MOSS-TTS | [clis/moss_tts_app.py](clis/moss_tts_app.py) |
-| MOSS-TTS-Local-Transformer-v1.5 | [clis/moss_tts_local_v1.5.py](clis/moss_tts_local_v1.5.py) |
+| MOSS-TTS-Local-Transformer-v1.5 | [clis/moss_tts_local_v1.5_app.py](clis/moss_tts_local_v1.5_app.py) |
 | MOSS-TTSD | [clis/moss_ttsd_app.py](clis/moss_ttsd_app.py) |
 | MOSS-VoiceGenerator | [clis/moss_voice_generator_app.py](clis/moss_voice_generator_app.py) |
 | MOSS-SoundEffect | [clis/moss_sound_effect_app.py](clis/moss_sound_effect_app.py) |
