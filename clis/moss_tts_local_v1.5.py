@@ -10,6 +10,7 @@ import mimetypes
 import os
 import queue
 import re
+import sys
 import threading
 import time
 import uuid
@@ -22,6 +23,11 @@ import torch
 import uvicorn
 from fastapi import FastAPI, File, Form, HTTPException, UploadFile
 from fastapi.responses import FileResponse, HTMLResponse, JSONResponse, StreamingResponse
+
+REPO_ROOT = Path(__file__).resolve().parent.parent
+STREAMING_MODULE_DIR = REPO_ROOT / "moss_tts_local_v1.5"
+if str(STREAMING_MODULE_DIR) not in sys.path:
+    sys.path.insert(0, str(STREAMING_MODULE_DIR))
 
 from streaming import (
     DEFAULT_CODEC_DIR,
@@ -49,7 +55,6 @@ CONTINUATION_NOTICE = (
 )
 ZH_TOKENS_PER_CHAR = 3.098411951313033
 EN_TOKENS_PER_CHAR = 0.8673376262755219
-REPO_ROOT = Path(__file__).resolve().parent.parent
 REFERENCE_AUDIO_DIR = REPO_ROOT / "assets" / "audio"
 EXAMPLE_TEXTS_JSONL_PATH = REPO_ROOT / "assets" / "text" / "moss_tts_example_texts.jsonl"
 LANGUAGE_TAG_AUTO = "Auto (omit)"

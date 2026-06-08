@@ -16,4 +16,4 @@ PORT="${PORT:-7861}"
 
 export MODEL_DIR CODEC_DIR DEVICE TTS_DEVICE CODEC_DEVICE TTS_DTYPE ATTN_IMPLEMENTATION CODEC_COMPUTE_DTYPE OUTPUT_DIR UPLOAD_DIR HOST PORT
 
-python "$(dirname "$0")/streaming_app.py"
+python "$(dirname "$0")/../clis/moss_tts_local_v1.5.py"
