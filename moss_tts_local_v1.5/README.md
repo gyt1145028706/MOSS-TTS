@@ -151,7 +151,7 @@ MODEL_DIR=OpenMOSS-Team/MOSS-TTS-Local-Transformer-v1.5 \
 CODEC_DIR=OpenMOSS-Team/MOSS-Audio-Tokenizer-v2 \
 TTS_DEVICE=cuda:0 \
 CODEC_DEVICE=cuda:1 \
-python clis/moss_tts_local_v1.5.py
+python clis/moss_tts_local_v1.5_app.py
 ```
 
 The app defaults to `flash_attention_2`. If FlashAttention 2 is not available
