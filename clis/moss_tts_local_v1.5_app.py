@@ -17,6 +17,7 @@ import uuid
 from contextlib import asynccontextmanager
 from pathlib import Path
 from typing import Any
+from urllib.parse import unquote
 
 import orjson
 import torch
@@ -167,6 +168,16 @@ def _safe_float(value: Any, *, default: float, minimum: float, maximum: float | 
     return parsed
 
 
+def _decode_reference_path(path: str) -> str:
+    decoded = str(path or "")
+    for _ in range(2):
+        next_decoded = unquote(decoded)
+        if next_decoded == decoded:
+            break
+        decoded = next_decoded
+    return decoded
+
+
 def _pcm16le_bytes(waveform: torch.Tensor) -> bytes:
     if waveform.ndim == 1:
         waveform = waveform.unsqueeze(0)
@@ -190,6 +201,7 @@ class RuntimeManager:
         codec_device: str,
         dtype: str,
         attn_implementation: str,
+        codec_weight_dtype: str,
         codec_compute_dtype: str,
         warmup: bool,
     ) -> None:
@@ -200,6 +212,7 @@ class RuntimeManager:
         self.codec_device = codec_device
         self.dtype = dtype
         self.attn_implementation = attn_implementation
+        self.codec_weight_dtype = codec_weight_dtype
         self.codec_compute_dtype = codec_compute_dtype
         self.warmup = bool(warmup)
         self._lock = threading.Lock()
@@ -248,6 +261,11 @@ class RuntimeManager:
                 if self._runtime is None
                 else self._runtime.attn_implementation
             ),
+            "codec_weight_dtype": (
+                self.codec_weight_dtype
+                if self._runtime is None
+                else self._runtime.codec_weight_dtype
+            ),
             "codec_compute_dtype": self.codec_compute_dtype,
             "n_vq": None if self._runtime is None else int(self._runtime.n_vq),
             "sample_rate": None if self._runtime is None else int(self._runtime.sample_rate),
@@ -282,6 +300,7 @@ class RuntimeManager:
                         codec_device=self.codec_device,
                         dtype=self.dtype,
                         attn_implementation=self.attn_implementation,
+                        codec_weight_dtype=self.codec_weight_dtype,
                         codec_compute_dtype=self.codec_compute_dtype,
                         warmup=self.warmup,
                     )
@@ -369,6 +388,7 @@ def create_app(
     codec_device: str = "cuda:0",
     dtype: str = "bfloat16",
     attn_implementation: str = "flash_attention_2",
+    codec_weight_dtype: str = "bf16",
     codec_compute_dtype: str = "bf16",
     warmup: bool = True,
     preload: bool = True,
@@ -381,6 +401,7 @@ def create_app(
         codec_device=codec_device,
         dtype=dtype,
         attn_implementation=attn_implementation,
+        codec_weight_dtype=codec_weight_dtype,
         codec_compute_dtype=codec_compute_dtype,
         warmup=warmup,
     )
@@ -535,7 +556,7 @@ def create_app(
             prompt_path.write_bytes(await prompt_audio.read())
             prompt_audio_path = str(prompt_path)
         elif example_audio_path:
-            candidate = Path(example_audio_path)
+            candidate = Path(_decode_reference_path(example_audio_path))
             if candidate.exists() and REFERENCE_AUDIO_DIR in candidate.resolve().parents:
                 prompt_audio_path = str(candidate)
 
@@ -595,7 +616,7 @@ def create_app(
     async def reference_audio(path: str) -> FileResponse:
         try:
             reference_root = REFERENCE_AUDIO_DIR.resolve(strict=True)
-            candidate = Path(path).resolve(strict=True)
+            candidate = Path(_decode_reference_path(path)).resolve(strict=True)
         except FileNotFoundError as exc:
             raise HTTPException(status_code=404, detail="reference audio not found") from exc
         if candidate != reference_root and reference_root not in candidate.parents:
@@ -664,6 +685,8 @@ def create_app(
                 "codec_device": codec_device,
                 "dtype": dtype,
                 "attn_implementation": attn_implementation,
+                "codec_weight_dtype": codec_weight_dtype,
+                "codec_compute_dtype": codec_compute_dtype,
                 "runtime": runtime_manager.status(),
             }
         )
@@ -757,13 +780,26 @@ INDEX_HTML = r"""
       overflow: hidden;
     }
     .drop-zone input { position: absolute; inset: 0; opacity: 0; cursor: pointer; z-index: 1; }
+    .drop-zone.hidden { display: none; }
     .drop-zone.has-reference { min-height: 0; display: block; padding: 0; overflow: visible; }
     .drop-zone.has-reference input { display: none; }
     .drop-zone.has-reference .drop-copy { display: none; }
     .reference-preview { display: block; width: 100%; position: relative; z-index: 2; pointer-events: auto; }
     audio[disabled] { opacity: 0.55; pointer-events: none; }
     .drop-copy { text-align: center; pointer-events: none; }
-    .selected-reference { margin-top: 8px; color: var(--muted); font-size: 12px; overflow-wrap: anywhere; }
+    .selected-reference { margin-top: 8px; color: var(--muted); font-size: 12px; overflow-wrap: anywhere; text-align: center; }
+    .reference-action-row { display: flex; justify-content: center; align-items: center; gap: 12px; margin-top: 8px; flex-wrap: wrap; }
+    .reference-source-row { display: flex; justify-content: center; margin-top: 0; }
+    .reference-source-toggle { display: inline-flex; gap: 4px; border: 1px solid var(--line); border-radius: 8px; padding: 4px; background: #fff; }
+    .reference-source-button { display: inline-flex; align-items: center; gap: 7px; border-radius: 6px; padding: 8px 12px; background: transparent; color: var(--muted); }
+    .reference-source-button.active { background: var(--accent); color: #fff; }
+    .reference-source-button svg { width: 18px; height: 18px; stroke: currentColor; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+    .reference-record-controls { display: flex; justify-content: center; align-items: center; gap: 10px; margin-top: 12px; flex-wrap: wrap; }
+    .reference-record-controls.hidden { display: none; }
+    .record-button { display: inline-flex; align-items: center; gap: 8px; background: var(--accent); color: #fff; }
+    .record-button.recording { background: #fee2e2; color: #b91c1c; }
+    .record-dot { width: 10px; height: 10px; border-radius: 999px; background: currentColor; }
+    .record-status { color: var(--muted); font-size: 12px; }
     .radio-row { display: flex; gap: 8px; flex-wrap: wrap; }
     .radio-pill {
       display: inline-flex;
@@ -866,8 +902,26 @@ INDEX_HTML = r"""
             <audio id="reference-audio-preview" class="reference-preview hidden" controls></audio>
           </div>
           <input id="example-audio-path" type="hidden" value="">
+          <div id="reference-record-controls" class="reference-record-controls hidden">
+            <button id="reference-record-button" class="record-button" type="button"><span class="record-dot"></span><span id="reference-record-button-label">Start Recording</span></button>
+            <span id="reference-record-status" class="record-status">Ready to record.</span>
+          </div>
+          <div class="reference-action-row">
+            <div class="reference-source-row">
+              <div class="reference-source-toggle" role="group" aria-label="Reference audio source">
+                <button id="reference-source-upload" class="reference-source-button active" type="button" aria-pressed="true" title="Upload">
+                  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 16V4"></path><path d="M7 9l5-5 5 5"></path><path d="M5 20h14"></path></svg>
+                  <span>Upload</span>
+                </button>
+                <button id="reference-source-record" class="reference-source-button" type="button" aria-pressed="false" title="Record">
+                  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 14a3 3 0 0 0 3-3V6a3 3 0 0 0-6 0v5a3 3 0 0 0 3 3z"></path><path d="M19 11a7 7 0 0 1-14 0"></path><path d="M12 18v3"></path><path d="M8 21h8"></path></svg>
+                  <span>Record</span>
+                </button>
+              </div>
+            </div>
+            <button id="clear-reference" class="secondary small-button" type="button">Clear Reference Audio</button>
+          </div>
           <div id="selected-reference" class="selected-reference">No reference selected.</div>
-          <button id="clear-reference" class="secondary small-button" type="button" style="margin-top: 10px;">Clear Reference Audio</button>
         </div>
 
         <div class="panel">
@@ -1022,12 +1076,28 @@ let pendingRealtimePcmChunks = [];
 let pendingRealtimePcmSeconds = 0;
 let realtimePlaybackStarted = false;
 let currentReferenceObjectUrl = null;
+let referenceSourceMode = "upload";
+let recordedReferenceFile = null;
+let referenceRecordingActive = false;
+let referenceRecordingStream = null;
+let referenceRecordingAudioContext = null;
+let referenceRecordingSource = null;
+let referenceRecordingProcessor = null;
+let referenceRecordingChunks = [];
+let referenceRecordingSampleRate = 48000;
+let referenceRecordingStartedAt = 0;
+let referenceRecordingTimer = null;
 
 function field(id) { return document.getElementById(id); }
 function apiUrl(path) {
   const cleanPath = String(path || "").replace(/^\/+/, "");
   const pagePath = window.location.pathname.endsWith("/") ? window.location.pathname : window.location.pathname + "/";
   return new URL(cleanPath, window.location.origin + pagePath).toString();
+}
+function referenceAudioUrl(path) {
+  const url = new URL(apiUrl("api/reference-audio"));
+  url.searchParams.set("path", path);
+  return url.toString();
 }
 function selectedMode() {
   const selected = document.querySelector("input[name='mode']:checked");
@@ -1040,7 +1110,7 @@ function selectedModeName() {
   return "Clone";
 }
 function hasReference() {
-  return Boolean(field("prompt-audio").files[0] || field("example-audio-path").value);
+  return Boolean(field("prompt-audio").files[0] || recordedReferenceFile || field("example-audio-path").value);
 }
 function setStatus(obj) {
   field("status").textContent = typeof obj === "string" ? obj : JSON.stringify(obj, null, 2);
@@ -1076,11 +1146,14 @@ function updateReferenceLabel() {
   const examplePath = field("example-audio-path").value;
   if (file) {
     field("selected-reference").textContent = `Uploaded reference: ${file.name}`;
+  } else if (recordedReferenceFile) {
+    field("selected-reference").textContent = `Recorded reference: ${recordedReferenceFile.name}`;
   } else if (examplePath) {
     field("selected-reference").textContent = `Example reference: ${examplePath}`;
   } else {
     field("selected-reference").textContent = "No reference selected.";
   }
+  syncReferenceSourceControls();
   updateModeHint();
 }
 function clearReferencePreview() {
@@ -1094,6 +1167,7 @@ function clearReferencePreview() {
   preview.load();
   preview.classList.add("hidden");
   field("reference-drop-zone").classList.remove("has-reference");
+  syncReferenceSourceControls();
 }
 function showReferencePreview(src, objectUrl = null) {
   if (currentReferenceObjectUrl) {
@@ -1104,6 +1178,7 @@ function showReferencePreview(src, objectUrl = null) {
   const preview = field("reference-audio-preview");
   preview.src = src;
   preview.classList.remove("hidden");
+  field("reference-drop-zone").classList.remove("hidden");
   field("reference-drop-zone").classList.add("has-reference");
   preview.load();
 }
@@ -1115,13 +1190,188 @@ function updateReferencePreview() {
     showReferencePreview(objectUrl, objectUrl);
     return;
   }
+  if (recordedReferenceFile) {
+    const objectUrl = URL.createObjectURL(recordedReferenceFile);
+    showReferencePreview(objectUrl, objectUrl);
+    return;
+  }
   if (examplePath) {
-    showReferencePreview(apiUrl(`api/reference-audio?path=${encodeURIComponent(examplePath)}`));
+    showReferencePreview(referenceAudioUrl(examplePath));
     return;
   }
   clearReferencePreview();
 }
+function syncReferenceSourceControls() {
+  const uploadMode = referenceSourceMode === "upload";
+  field("reference-source-upload").classList.toggle("active", uploadMode);
+  field("reference-source-record").classList.toggle("active", !uploadMode);
+  field("reference-source-upload").setAttribute("aria-pressed", uploadMode ? "true" : "false");
+  field("reference-source-record").setAttribute("aria-pressed", uploadMode ? "false" : "true");
+  field("reference-record-controls").classList.toggle("hidden", uploadMode);
+  field("reference-drop-zone").classList.toggle("hidden", !uploadMode && !hasReference());
+}
+function setReferenceSourceMode(mode) {
+  const nextMode = mode === "record" ? "record" : "upload";
+  if (referenceRecordingActive && nextMode !== "record") stopReferenceRecording(true);
+  referenceSourceMode = nextMode;
+  if (nextMode === "upload") {
+    recordedReferenceFile = null;
+    field("reference-record-status").textContent = "Ready to record.";
+  } else {
+    field("prompt-audio").value = "";
+    field("example-audio-path").value = "";
+  }
+  updateReferencePreview();
+  updateReferenceLabel();
+}
+function formatRecordingDuration(seconds) {
+  const safeSeconds = Math.max(0, Math.floor(seconds || 0));
+  const minutes = Math.floor(safeSeconds / 60);
+  const rest = safeSeconds % 60;
+  return `${minutes}:${String(rest).padStart(2, "0")}`;
+}
+function updateRecordButtonState() {
+  const button = field("reference-record-button");
+  button.classList.toggle("recording", referenceRecordingActive);
+  field("reference-record-button-label").textContent = referenceRecordingActive ? "Stop Recording" : "Start Recording";
+}
+function updateRecordingStatus() {
+  if (!referenceRecordingActive) return;
+  const elapsed = (Date.now() - referenceRecordingStartedAt) / 1000;
+  field("reference-record-status").textContent = `Recording ${formatRecordingDuration(elapsed)}`;
+}
+function flattenRecordingChunks(chunks) {
+  const length = chunks.reduce((total, chunk) => total + chunk.length, 0);
+  const merged = new Float32Array(length);
+  let offset = 0;
+  for (const chunk of chunks) {
+    merged.set(chunk, offset);
+    offset += chunk.length;
+  }
+  return merged;
+}
+function writeAscii(view, offset, value) {
+  for (let index = 0; index < value.length; index += 1) {
+    view.setUint8(offset + index, value.charCodeAt(index));
+  }
+}
+function encodeWavPcm16(samples, sampleRate) {
+  const buffer = new ArrayBuffer(44 + samples.length * 2);
+  const view = new DataView(buffer);
+  writeAscii(view, 0, "RIFF");
+  view.setUint32(4, 36 + samples.length * 2, true);
+  writeAscii(view, 8, "WAVE");
+  writeAscii(view, 12, "fmt ");
+  view.setUint32(16, 16, true);
+  view.setUint16(20, 1, true);
+  view.setUint16(22, 1, true);
+  view.setUint32(24, sampleRate, true);
+  view.setUint32(28, sampleRate * 2, true);
+  view.setUint16(32, 2, true);
+  view.setUint16(34, 16, true);
+  writeAscii(view, 36, "data");
+  view.setUint32(40, samples.length * 2, true);
+  let offset = 44;
+  for (const sample of samples) {
+    const clamped = Math.max(-1, Math.min(1, sample));
+    view.setInt16(offset, clamped < 0 ? clamped * 0x8000 : clamped * 0x7fff, true);
+    offset += 2;
+  }
+  return buffer;
+}
+function cleanupReferenceRecordingNodes() {
+  if (referenceRecordingTimer) {
+    window.clearInterval(referenceRecordingTimer);
+    referenceRecordingTimer = null;
+  }
+  if (referenceRecordingProcessor) {
+    try { referenceRecordingProcessor.disconnect(); } catch (err) {}
+    referenceRecordingProcessor.onaudioprocess = null;
+    referenceRecordingProcessor = null;
+  }
+  if (referenceRecordingSource) {
+    try { referenceRecordingSource.disconnect(); } catch (err) {}
+    referenceRecordingSource = null;
+  }
+  if (referenceRecordingStream) {
+    for (const track of referenceRecordingStream.getTracks()) track.stop();
+    referenceRecordingStream = null;
+  }
+  if (referenceRecordingAudioContext) {
+    referenceRecordingAudioContext.close().catch(() => {});
+    referenceRecordingAudioContext = null;
+  }
+}
+async function startReferenceRecording() {
+  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+    throw new Error("Microphone recording is not supported in this browser.");
+  }
+  field("prompt-audio").value = "";
+  field("example-audio-path").value = "";
+  recordedReferenceFile = null;
+  clearReferencePreview();
+  referenceRecordingChunks = [];
+  referenceRecordingStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+  const AudioContextCtor = window.AudioContext || window.webkitAudioContext;
+  if (!AudioContextCtor) throw new Error("Web Audio recording is not supported in this browser.");
+  referenceRecordingAudioContext = new AudioContextCtor();
+  referenceRecordingSampleRate = referenceRecordingAudioContext.sampleRate || 48000;
+  referenceRecordingSource = referenceRecordingAudioContext.createMediaStreamSource(referenceRecordingStream);
+  referenceRecordingProcessor = referenceRecordingAudioContext.createScriptProcessor(4096, 1, 1);
+  referenceRecordingActive = true;
+  referenceRecordingStartedAt = Date.now();
+  referenceRecordingProcessor.onaudioprocess = (event) => {
+    if (!referenceRecordingActive) return;
+    const input = event.inputBuffer.getChannelData(0);
+    referenceRecordingChunks.push(new Float32Array(input));
+    event.outputBuffer.getChannelData(0).fill(0);
+  };
+  referenceRecordingSource.connect(referenceRecordingProcessor);
+  referenceRecordingProcessor.connect(referenceRecordingAudioContext.destination);
+  referenceRecordingTimer = window.setInterval(updateRecordingStatus, 200);
+  updateRecordingStatus();
+  updateRecordButtonState();
+}
+function stopReferenceRecording(discard = false) {
+  if (!referenceRecordingActive) return;
+  referenceRecordingActive = false;
+  const chunks = referenceRecordingChunks;
+  referenceRecordingChunks = [];
+  cleanupReferenceRecordingNodes();
+  updateRecordButtonState();
+  if (discard) {
+    field("reference-record-status").textContent = "Ready to record.";
+    return;
+  }
+  if (!chunks.length) {
+    field("reference-record-status").textContent = "No audio captured.";
+    return;
+  }
+  const samples = flattenRecordingChunks(chunks);
+  const wavBuffer = encodeWavPcm16(samples, referenceRecordingSampleRate);
+  const stamp = new Date().toISOString().replace(/[:.]/g, "-");
+  recordedReferenceFile = new File([wavBuffer], `recorded_reference_${stamp}.wav`, { type: "audio/wav" });
+  field("reference-record-status").textContent = `Recorded ${formatRecordingDuration(samples.length / referenceRecordingSampleRate)}`;
+  updateReferencePreview();
+  updateReferenceLabel();
+}
+async function toggleReferenceRecording() {
+  if (referenceRecordingActive) {
+    stopReferenceRecording(false);
+    return;
+  }
+  try {
+    await startReferenceRecording();
+  } catch (err) {
+    cleanupReferenceRecordingNodes();
+    referenceRecordingActive = false;
+    updateRecordButtonState();
+    field("reference-record-status").textContent = String(err);
+  }
+}
 function clearReferenceAudio() {
+  if (referenceRecordingActive) stopReferenceRecording(true);
+  recordedReferenceFile = null;
   field("prompt-audio").value = "";
   field("example-audio-path").value = "";
   clearReferencePreview();
@@ -1192,7 +1442,11 @@ function renderExamples() {
       field("text").value = example.text;
       field("example-audio-path").value = example.audio_path;
       if (LANGUAGES.includes(example.language)) field("language").value = example.language;
+      if (referenceRecordingActive) stopReferenceRecording(true);
+      recordedReferenceFile = null;
+      referenceSourceMode = "upload";
       field("prompt-audio").value = "";
+      syncReferenceSourceControls();
       updateReferencePreview();
       updateReferenceLabel();
       updateDurationControls();
@@ -1455,7 +1709,7 @@ field("start").onclick = async () => {
   currentStreamingGenerationEnabled = field("streaming-generation").checked;
   form.append("streaming_generation", currentStreamingGenerationEnabled ? "1" : "0");
   form.append("example_audio_path", field("example-audio-path").value);
-  const file = field("prompt-audio").files[0];
+  const file = field("prompt-audio").files[0] || recordedReferenceFile;
   if (file) form.append("prompt_audio", file);
   try {
     if ((selectedMode() === "continuation" || selectedMode() === "continuation_clone") && hasReference() && !field("prompt-text").value.trim()) {
@@ -1509,14 +1763,25 @@ for (const id of ["temperature", "top-p", "top-k", "repetition-penalty", "max-ne
 field("tokens-control").onchange = updateDurationControls;
 field("text").oninput = updateDurationControls;
 field("prompt-audio").onchange = () => {
-  if (field("prompt-audio").files[0]) field("example-audio-path").value = "";
+  if (field("prompt-audio").files[0]) {
+    if (referenceRecordingActive) stopReferenceRecording(true);
+    recordedReferenceFile = null;
+    referenceSourceMode = "upload";
+    field("example-audio-path").value = "";
+    syncReferenceSourceControls();
+  }
   updateReferencePreview();
   updateReferenceLabel();
 };
+field("reference-source-upload").onclick = () => setReferenceSourceMode("upload");
+field("reference-source-record").onclick = () => setReferenceSourceMode("record");
+field("reference-record-button").onclick = () => toggleReferenceRecording();
 field("clear-reference").onclick = clearReferenceAudio;
 for (const radio of document.querySelectorAll("input[name='mode']")) {
   radio.onchange = updateModeHint;
 }
+syncReferenceSourceControls();
+updateRecordButtonState();
 updateReferenceLabel();
 setInterval(pollRuntime, 1500);
 pollRuntime();
@@ -1539,7 +1804,18 @@ def _parse_args() -> argparse.Namespace:
     parser.add_argument("--codec-device", default=os.environ.get("CODEC_DEVICE", os.environ.get("TTS_DEVICE", "cuda:0")))
     parser.add_argument("--dtype", default=os.environ.get("TTS_DTYPE", "bfloat16"))
     parser.add_argument("--attn-implementation", default=os.environ.get("ATTN_IMPLEMENTATION", "flash_attention_2"))
-    parser.add_argument("--codec-compute-dtype", default=os.environ.get("CODEC_COMPUTE_DTYPE", "bf16"))
+    parser.add_argument(
+        "--codec-weight-dtype",
+        default=os.environ.get("CODEC_WEIGHT_DTYPE", "bf16"),
+        choices=["bf16", "bfloat16", "fp32", "float32"],
+        help="Codec encoder/decoder parameter dtype. The quantizer stays fp32.",
+    )
+    parser.add_argument(
+        "--codec-compute-dtype",
+        default=os.environ.get("CODEC_COMPUTE_DTYPE", "bf16"),
+        choices=["bf16", "fp32"],
+        help="Codec non-quantizer autocast compute dtype.",
+    )
     parser.add_argument("--no-warmup", action="store_true")
     parser.add_argument("--no-preload", action="store_true")
     return parser.parse_args()
@@ -1557,6 +1833,7 @@ def main() -> None:
         codec_device=args.codec_device or args.tts_device or args.device,
         dtype=args.dtype,
         attn_implementation=args.attn_implementation,
+        codec_weight_dtype=args.codec_weight_dtype,
         codec_compute_dtype=args.codec_compute_dtype,
         warmup=not args.no_warmup,
         preload=not args.no_preload,

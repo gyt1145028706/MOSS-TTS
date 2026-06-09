@@ -213,6 +213,14 @@ class MossTTSLocalProcessor(ProcessorMixin):
         trust_remote_code = kwargs.pop("trust_remote_code", True)
         kwargs.pop("_from_auto", None)
         codec_path = kwargs.pop("codec_path", None)
+        codec_weight_dtype = kwargs.pop("codec_weight_dtype", "bf16")
+        codec_compute_dtype = kwargs.pop("codec_compute_dtype", None)
+        codec_attention_implementation = kwargs.pop("codec_attention_implementation", None)
+
+        codec_kwargs: Dict[str, Any] = {}
+        if codec_weight_dtype is not None:
+            # Default to bf16 codec weights; callers can pass codec_weight_dtype="fp32" to override.
+            codec_kwargs["codec_weight_dtype"] = codec_weight_dtype
 
         model_ref = Path(str(pretrained_model_name_or_path))
         model_ref_or_name = model_ref if model_ref.exists() else pretrained_model_name_or_path
@@ -253,7 +261,14 @@ class MossTTSLocalProcessor(ProcessorMixin):
             codec_path,
             trust_remote_code=trust_remote_code,
             **kwargs,
+            **codec_kwargs,
         )
+        if codec_compute_dtype is not None and hasattr(audio_tokenizer, "set_compute_dtype"):
+            audio_tokenizer.set_compute_dtype(codec_compute_dtype)
+        if codec_attention_implementation is not None and hasattr(
+            audio_tokenizer, "set_attention_implementation"
+        ):
+            audio_tokenizer.set_attention_implementation(codec_attention_implementation)
         return cls(
             tokenizer=tokenizer,
             audio_tokenizer=audio_tokenizer,

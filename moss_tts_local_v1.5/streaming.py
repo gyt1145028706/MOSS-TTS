@@ -57,6 +57,8 @@ class StreamingRuntime:
     frame_rate: float
     n_vq: int
     attn_implementation: str
+    codec_weight_dtype: str
+    codec_compute_dtype: str
 
 
 @dataclass
@@ -179,6 +181,7 @@ def load_runtime(
     codec_device: str | torch.device | None = None,
     dtype: str | torch.dtype = "bfloat16",
     attn_implementation: str = "flash_attention_2",
+    codec_weight_dtype: str = "bf16",
     codec_compute_dtype: str = "bf16",
     warmup: bool = True,
 ) -> StreamingRuntime:
@@ -201,6 +204,9 @@ def load_runtime(
         model_ref,
         trust_remote_code=True,
         codec_path=codec_ref,
+        codec_weight_dtype=codec_weight_dtype,
+        codec_compute_dtype=codec_compute_dtype,
+        codec_attention_implementation=resolved_attn_implementation,
     )
     model = AutoModel.from_pretrained(
         model_ref,
@@ -238,6 +244,8 @@ def load_runtime(
         frame_rate=float(sample_rate) / float(downsample_rate),
         n_vq=n_vq,
         attn_implementation=resolved_attn_implementation,
+        codec_weight_dtype=str(codec_weight_dtype),
+        codec_compute_dtype=str(codec_compute_dtype),
     )
     if warmup:
         warmup_streaming_runtime(runtime)
@@ -1043,7 +1051,18 @@ def _parse_args() -> argparse.Namespace:
         default="flash_attention_2",
         choices=["flash_attention_2", "sdpa", "eager"],
     )
-    parser.add_argument("--codec-compute-dtype", default="bf16", choices=["bf16", "fp16", "fp32"])
+    parser.add_argument(
+        "--codec-weight-dtype",
+        default="bf16",
+        choices=["bf16", "bfloat16", "fp32", "float32"],
+        help="Codec encoder/decoder parameter dtype. The quantizer stays fp32.",
+    )
+    parser.add_argument(
+        "--codec-compute-dtype",
+        default="bf16",
+        choices=["bf16", "fp32"],
+        help="Codec non-quantizer autocast compute dtype.",
+    )
     parser.add_argument("--temperature", type=float, default=1.2)
     parser.add_argument("--top-p", type=float, default=1.0)
     parser.add_argument("--top-k", type=int, default=25)
@@ -1071,6 +1090,7 @@ def main() -> None:
         codec_device=args.codec_device or args.tts_device or args.device,
         dtype=args.dtype,
         attn_implementation=args.attn_implementation,
+        codec_weight_dtype=args.codec_weight_dtype,
         codec_compute_dtype=args.codec_compute_dtype,
     )
     request = StreamingRequest(
