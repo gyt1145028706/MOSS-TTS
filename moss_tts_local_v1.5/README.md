@@ -151,14 +151,14 @@ MODEL_DIR=OpenMOSS-Team/MOSS-TTS-Local-Transformer-v1.5 \
 CODEC_DIR=OpenMOSS-Team/MOSS-Audio-Tokenizer-v2 \
 TTS_DEVICE=cuda:0 \
 CODEC_DEVICE=cuda:1 \
-CODEC_WEIGHT_DTYPE=bf16 \
+CODEC_WEIGHT_DTYPE=fp32 \
 bash moss_tts_local_v1.5/run_streaming_app.sh
 ```
 
 The app defaults to `flash_attention_2`. If FlashAttention 2 is not available
 in the current environment, runtime loading falls back to `sdpa` on CUDA.
-The codec encoder/decoder weights default to `bf16`; pass
-`--codec-weight-dtype fp32` or set `CODEC_WEIGHT_DTYPE=fp32` to override.
+The codec encoder/decoder weights default to `fp32`; pass
+`--codec-weight-dtype bf16` or set `CODEC_WEIGHT_DTYPE=bf16` to reduce memory.
 For Continuation and Continuation + Clone modes, provide the reference audio
 transcript in the separate Reference Audio Transcript field.
 

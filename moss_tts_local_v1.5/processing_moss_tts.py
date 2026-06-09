@@ -213,13 +213,13 @@ class MossTTSLocalProcessor(ProcessorMixin):
         trust_remote_code = kwargs.pop("trust_remote_code", True)
         kwargs.pop("_from_auto", None)
         codec_path = kwargs.pop("codec_path", None)
-        codec_weight_dtype = kwargs.pop("codec_weight_dtype", "bf16")
+        codec_weight_dtype = kwargs.pop("codec_weight_dtype", "fp32")
         codec_compute_dtype = kwargs.pop("codec_compute_dtype", None)
         codec_attention_implementation = kwargs.pop("codec_attention_implementation", None)
 
         codec_kwargs: Dict[str, Any] = {}
         if codec_weight_dtype is not None:
-            # Default to bf16 codec weights; callers can pass codec_weight_dtype="fp32" to override.
+            # Default to fp32 codec weights; callers can pass codec_weight_dtype="bf16" to reduce memory.
             codec_kwargs["codec_weight_dtype"] = codec_weight_dtype
 
         model_ref = Path(str(pretrained_model_name_or_path))

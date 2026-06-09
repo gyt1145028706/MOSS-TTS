@@ -388,7 +388,7 @@ def create_app(
     codec_device: str = "cuda:0",
     dtype: str = "bfloat16",
     attn_implementation: str = "flash_attention_2",
-    codec_weight_dtype: str = "bf16",
+    codec_weight_dtype: str = "fp32",
     codec_compute_dtype: str = "bf16",
     warmup: bool = True,
     preload: bool = True,
@@ -1806,9 +1806,9 @@ def _parse_args() -> argparse.Namespace:
     parser.add_argument("--attn-implementation", default=os.environ.get("ATTN_IMPLEMENTATION", "flash_attention_2"))
     parser.add_argument(
         "--codec-weight-dtype",
-        default=os.environ.get("CODEC_WEIGHT_DTYPE", "bf16"),
+        default=os.environ.get("CODEC_WEIGHT_DTYPE", "fp32"),
         choices=["bf16", "bfloat16", "fp32", "float32"],
-        help="Codec encoder/decoder parameter dtype. The quantizer stays fp32.",
+        help="Codec encoder/decoder parameter dtype. Defaults to fp32; pass bf16 to reduce memory. The quantizer stays fp32.",
     )
     parser.add_argument(
         "--codec-compute-dtype",

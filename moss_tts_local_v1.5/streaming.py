@@ -181,7 +181,7 @@ def load_runtime(
     codec_device: str | torch.device | None = None,
     dtype: str | torch.dtype = "bfloat16",
     attn_implementation: str = "flash_attention_2",
-    codec_weight_dtype: str = "bf16",
+    codec_weight_dtype: str = "fp32",
     codec_compute_dtype: str = "bf16",
     warmup: bool = True,
 ) -> StreamingRuntime:
@@ -1053,9 +1053,9 @@ def _parse_args() -> argparse.Namespace:
     )
     parser.add_argument(
         "--codec-weight-dtype",
-        default="bf16",
+        default="fp32",
         choices=["bf16", "bfloat16", "fp32", "float32"],
-        help="Codec encoder/decoder parameter dtype. The quantizer stays fp32.",
+        help="Codec encoder/decoder parameter dtype. Defaults to fp32; pass bf16 to reduce memory. The quantizer stays fp32.",
     )
     parser.add_argument(
         "--codec-compute-dtype",
