@@ -147,7 +147,7 @@ We train **MossTTSDelay** and **MossTTSLocal** as complementary baselines under 
 |---|---|---:|---|---|---|
 | **MOSS-TTS-v1.5** | `MossTTSDelay` | 8B | [![Model Card](https://img.shields.io/badge/Model%20Card-View-blue?logo=markdown)](docs/moss_tts_model_card.md) | [![Hugging Face](https://img.shields.io/badge/Huggingface-Model-orange?logo=huggingface)](https://huggingface.co/OpenMOSS-Team/MOSS-TTS-v1.5) | [![ModelScope](https://img.shields.io/badge/ModelScope-Model-7B61FF?logo=modelscope&logoColor=white)](https://modelscope.cn/models/openmoss/MOSS-TTS-v1.5) |
 | **MOSS-TTS 1.0** | `MossTTSDelay` | 8B | [![Model Card](https://img.shields.io/badge/Model%20Card-View-blue?logo=markdown)](docs/moss_tts_model_card.md) | [![Hugging Face](https://img.shields.io/badge/Huggingface-Model-orange?logo=huggingface)](https://huggingface.co/OpenMOSS-Team/MOSS-TTS) | [![ModelScope](https://img.shields.io/badge/ModelScope-Model-7B61FF?logo=modelscope&logoColor=white)](https://modelscope.cn/models/openmoss/MOSS-TTS) |
-| **MOSS-TTS-Local-Transformer-v1.5** | `MossTTSLocal` | 4B | [![Model Card](https://img.shields.io/badge/Model%20Card-View-blue?logo=markdown)](moss_tts_local_v1.5/README.md) | [![Hugging Face](https://img.shields.io/badge/Huggingface-Model-orange?logo=huggingface)](https://huggingface.co/OpenMOSS-Team/MOSS-TTS-Local-Transformer-v1.5) | [![ModelScope](https://img.shields.io/badge/ModelScope-Model-7B61FF?logo=modelscope&logoColor=white)](https://modelscope.cn/models/openmoss/MOSS-TTS-Local-Transformer-v1.5)  |
+| **MOSS-TTS-Local-Transformer-v1.5** | `MossTTSLocal` | 4B | [![Model Card](https://img.shields.io/badge/Model%20Card-View-blue?logo=markdown)](moss_tts_local_v1.5/README.md) | [![Hugging Face](https://img.shields.io/badge/Huggingface-Model-orange?logo=huggingface)](https://huggingface.co/OpenMOSS-Team/MOSS-TTS-Local-Transformer-v1.5) | [![ModelScope](https://img.shields.io/badge/ModelScope-Model-7B61FF?logo=modelscope&logoColor=white)](https://modelscope.cn/models/openmoss/MOSS-TTS-Local-Transformer-v1.5) |
 | **MOSS-TTS-Local-Transformer** | `MossTTSLocal` | 1.7B | [![Model Card](https://img.shields.io/badge/Model%20Card-View-blue?logo=markdown)](docs/moss_tts_model_card.md) | [![Hugging Face](https://img.shields.io/badge/Huggingface-Model-orange?logo=huggingface)](https://huggingface.co/OpenMOSS-Team/MOSS-TTS-Local-Transformer) | [![ModelScope](https://img.shields.io/badge/ModelScope-Model-7B61FF?logo=modelscope&logoColor=white)](https://modelscope.cn/models/openmoss/MOSS-TTS-Local-Transformer) |
 | **MOSS‑TTSD‑V1.0** | `MossTTSDelay` | 8B | [![Model Card](https://img.shields.io/badge/Model%20Card-View-blue?logo=markdown)](docs/moss_ttsd_model_card.md) | [![Hugging Face](https://img.shields.io/badge/Huggingface-Model-orange?logo=huggingface)](https://huggingface.co/OpenMOSS-Team/MOSS-TTSD-v1.0) | [![ModelScope](https://img.shields.io/badge/ModelScope-Model-7B61FF?logo=modelscope&logoColor=white)](https://modelscope.cn/models/openmoss/MOSS-TTSD-v1.0) |
 | **MOSS‑VoiceGenerator** | `MossTTSDelay` | 1.7B | [![Model Card](https://img.shields.io/badge/Model%20Card-View-blue?logo=markdown)](docs/moss_voice_generator_model_card.md) | [![Hugging Face](https://img.shields.io/badge/Huggingface-Model-orange?logo=huggingface)](https://huggingface.co/OpenMOSS-Team/MOSS-VoiceGenerator) | [![ModelScope](https://img.shields.io/badge/ModelScope-Model-7B61FF?logo=modelscope&logoColor=white)](https://modelscope.cn/models/openmoss/MOSS-VoiceGenerator) |
@@ -157,7 +157,7 @@ We train **MossTTSDelay** and **MossTTSLocal** as complementary baselines under 
 
 ## Supported Languages
 
-MOSS-TTS-v1.5 and MOSS-TTS-Local-Transformer-v1.5 currently supports **31 languages**. It keeps the 20 languages supported by [MOSS-TTS 1.0](https://huggingface.co/OpenMOSS-Team/MOSS-TTS) and extends multilingual continued training to Cantonese, Dutch, Finnish, Hindi, Macedonian, Malay, Romanian, Swahili, Tagalog, Thai, and Vietnamese.
+MOSS-TTS-v1.5 and MOSS-TTS-Local-Transformer-v1.5 currently support **31 languages**. They keep the 20 languages supported by [MOSS-TTS 1.0](https://huggingface.co/OpenMOSS-Team/MOSS-TTS) and extend multilingual continued training to Cantonese, Dutch, Finnish, Hindi, Macedonian, Malay, Romanian, Swahili, Tagalog, Thai, and Vietnamese.
 
 MOSS-TTSD and MOSS-TTS-Realtime follow their own model cards for supported language coverage.
 
@@ -189,7 +189,7 @@ Compared with MOSS-TTS 1.0, v1.5 focuses on these improvements:
 
 ## MOSS-TTS-Local-Transformer-v1.5
 
-**MOSS-TTS-Local-Transformer-v1.5** is the 48 kHz stereo local-transformer release. It uses [MOSS-Audio-Tokenizer-v2](https://huggingface.co/OpenMOSS-Team/MOSS-Audio-Tokenizer-v2) as audio tokenizer, adds realtime streaming decode examples in [`moss_tts_local_v1.5/`](moss_tts_local_v1.5/README.md).
+**MOSS-TTS-Local-Transformer-v1.5** is the 48 kHz stereo local-transformer release. It uses [MOSS-Audio-Tokenizer-v2](https://huggingface.co/OpenMOSS-Team/MOSS-Audio-Tokenizer-v2) as the audio tokenizer and adds realtime streaming decode examples in [`moss_tts_local_v1.5/`](moss_tts_local_v1.5/README.md).
 
 Compared with [MOSS-TTS-Local-Transformer-v1.0](https://huggingface.co/OpenMOSS-Team/MOSS-TTS-Local-Transformer), v1.5 focuses on these improvements:
 

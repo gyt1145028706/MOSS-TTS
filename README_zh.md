@@ -77,6 +77,7 @@ MOSS‑TTS 家族是由 [MOSI.AI](https://mosi.cn/#hero) 与 [OpenMOSS 团队](h
   - [模型概览](#模型概览)
   - [支持的语言](#支持的语言)
   - [MOSS-TTS-v1.5](#moss-tts-v15)
+  - [MOSS-TTS-Local-Transformer-v1.5](#moss-tts-local-transformer-v15)
   - [快速开始](#快速开始)
     - [OpenClaw API Skills](#openclaw-api-skills)
     - [环境准备](#环境准备)
@@ -150,6 +151,7 @@ MOSS‑TTS 家族是由 [MOSI.AI](https://mosi.cn/#hero) 与 [OpenMOSS 团队](h
 |---|---|---:|---|---|---|
 | **MOSS-TTS-v1.5** | `MossTTSDelay` | 8B | [![Model Card](https://img.shields.io/badge/Model%20Card-View-blue?logo=markdown)](docs/moss_tts_model_card.md) | [![Hugging Face](https://img.shields.io/badge/Huggingface-Model-orange?logo=huggingface)](https://huggingface.co/OpenMOSS-Team/MOSS-TTS-v1.5) | [![ModelScope](https://img.shields.io/badge/ModelScope-Model-7B61FF?logo=modelscope&logoColor=white)](https://modelscope.cn/models/openmoss/MOSS-TTS-v1.5) |
 | **MOSS-TTS 1.0** | `MossTTSDelay` | 8B | [![Model Card](https://img.shields.io/badge/Model%20Card-View-blue?logo=markdown)](docs/moss_tts_model_card.md) | [![Hugging Face](https://img.shields.io/badge/Huggingface-Model-orange?logo=huggingface)](https://huggingface.co/OpenMOSS-Team/MOSS-TTS) | [![ModelScope](https://img.shields.io/badge/ModelScope-Model-7B61FF?logo=modelscope&logoColor=white)](https://modelscope.cn/models/openmoss/MOSS-TTS) |
+| **MOSS-TTS-Local-Transformer-v1.5** | `MossTTSLocal` | 4B | [![Model Card](https://img.shields.io/badge/Model%20Card-View-blue?logo=markdown)](moss_tts_local_v1.5/README.md) | [![Hugging Face](https://img.shields.io/badge/Huggingface-Model-orange?logo=huggingface)](https://huggingface.co/OpenMOSS-Team/MOSS-TTS-Local-Transformer-v1.5) | [![ModelScope](https://img.shields.io/badge/ModelScope-Model-7B61FF?logo=modelscope&logoColor=white)](https://modelscope.cn/models/openmoss/MOSS-TTS-Local-Transformer-v1.5) |
 | **MOSS-TTS-Local-Transformer** | `MossTTSLocal` | 1.7B | [![Model Card](https://img.shields.io/badge/Model%20Card-View-blue?logo=markdown)](docs/moss_tts_model_card.md) | [![Hugging Face](https://img.shields.io/badge/Huggingface-Model-orange?logo=huggingface)](https://huggingface.co/OpenMOSS-Team/MOSS-TTS-Local-Transformer) | [![ModelScope](https://img.shields.io/badge/ModelScope-Model-7B61FF?logo=modelscope&logoColor=white)](https://modelscope.cn/models/openmoss/MOSS-TTS-Local-Transformer) |
 | **MOSS‑TTSD‑V1.0** | `MossTTSDelay` | 8B | [![Model Card](https://img.shields.io/badge/Model%20Card-View-blue?logo=markdown)](docs/moss_ttsd_model_card.md) | [![Hugging Face](https://img.shields.io/badge/Huggingface-Model-orange?logo=huggingface)](https://huggingface.co/OpenMOSS-Team/MOSS-TTSD-v1.0) | [![ModelScope](https://img.shields.io/badge/ModelScope-Model-7B61FF?logo=modelscope&logoColor=white)](https://modelscope.cn/models/openmoss/MOSS-TTSD-v1.0) |
 | **MOSS‑VoiceGenerator** | `MossTTSDelay` | 1.7B | [![Model Card](https://img.shields.io/badge/Model%20Card-View-blue?logo=markdown)](docs/moss_voice_generator_model_card.md) | [![Hugging Face](https://img.shields.io/badge/Huggingface-Model-orange?logo=huggingface)](https://huggingface.co/OpenMOSS-Team/MOSS-VoiceGenerator) | [![ModelScope](https://img.shields.io/badge/ModelScope-Model-7B61FF?logo=modelscope&logoColor=white)](https://modelscope.cn/models/openmoss/MOSS-VoiceGenerator) |
@@ -161,7 +163,7 @@ MOSS‑TTS 家族是由 [MOSI.AI](https://mosi.cn/#hero) 与 [OpenMOSS 团队](h
 
 ## 支持的语言
 
-MOSS-TTS-v1.5 当前支持 **31 种语言**。它保留了 [MOSS-TTS 1.0](https://huggingface.co/OpenMOSS-Team/MOSS-TTS) 支持的 20 种语言，并继续训练扩展到粤语、荷兰语、芬兰语、印地语、马其顿语、马来语、罗马尼亚语、斯瓦希里语、他加禄语、泰语和越南语。
+MOSS-TTS-v1.5 和 MOSS-TTS-Local-Transformer-v1.5 当前支持 **31 种语言**。它们保留了 [MOSS-TTS 1.0](https://huggingface.co/OpenMOSS-Team/MOSS-TTS) 支持的 20 种语言，并继续训练扩展到粤语、荷兰语、芬兰语、印地语、马其顿语、马来语、罗马尼亚语、斯瓦希里语、他加禄语、泰语和越南语。
 
 MOSS-TTSD 和 MOSS-TTS-Realtime 的语言覆盖请以各自 model card 为准。
 
@@ -186,6 +188,19 @@ MOSS-TTSD 和 MOSS-TTS-Realtime 的语言覆盖请以各自 model card 为准。
 相比 MOSS-TTS 1.0，v1.5 重点改进了以下方面：
 
 - **带语言标签的多语种合成更强**：当语言已知时，建议在构造用户消息时设置语言，例如 `processor.build_user_message(text=text_fr, language="French")`。
+- **voice clone 更稳定**：提升说话人相似度，并降低多次生成之间的音色波动。
+- **长参考音频、短目标文本的克隆更可靠**：当参考音频明显长于待合成文本时，v1.5 更稳定。
+- **标点驱动的韵律停顿更稳定**：尤其在长句中更能跟随标点停顿。
+- **显式停顿控制**：支持 `[pause X.Ys]` 这样的内联停顿标记，例如 `我今天学习了一首中国的古诗，它的名字是[pause 3.2s]静夜思！`。
+
+## MOSS-TTS-Local-Transformer-v1.5
+
+**MOSS-TTS-Local-Transformer-v1.5** 是 48 kHz 立体声 Local-Transformer 版本。它使用 [MOSS-Audio-Tokenizer-v2](https://huggingface.co/OpenMOSS-Team/MOSS-Audio-Tokenizer-v2) 作为音频 tokenizer，并在 [`moss_tts_local_v1.5/`](moss_tts_local_v1.5/README.md) 中提供实时流式解码示例。
+
+相比 [MOSS-TTS-Local-Transformer-v1.0](https://huggingface.co/OpenMOSS-Team/MOSS-TTS-Local-Transformer)，v1.5 重点改进了以下方面：
+
+- **更高保真的立体声音频建模**：v1.5 使用 [MOSS-Audio-Tokenizer-v2](https://huggingface.co/OpenMOSS-Team/MOSS-Audio-Tokenizer-v2) 作为音频 tokenizer，支持原生 48 kHz 立体声输入与输出，提供更丰富的空间细节和更自然的听感。
+- **带语言标签的多语种合成更强**：当语言已知时，建议在构造用户消息时设置语言，例如 `processor.build_user_message(text=text, language="French")`，或在对应 API 字段中指定。
 - **voice clone 更稳定**：提升说话人相似度，并降低多次生成之间的音色波动。
 - **长参考音频、短目标文本的克隆更可靠**：当参考音频明显长于待合成文本时，v1.5 更稳定。
 - **标点驱动的韵律停顿更稳定**：尤其在长句中更能跟随标点停顿。
