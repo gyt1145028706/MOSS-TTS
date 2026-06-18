@@ -35,8 +35,10 @@ MOSS‑TTS Family is an open‑source **speech and sound generation model family
 
 
 ## News
-* 2026.6.8: 🚀 Released [MOSS-TTS-Local-Transformer-v1.5](https://huggingface.co/OpenMOSS-Team/MOSS-TTS-Local-Transformer-v1.5), a real-time streaming TTS model supporting 48 kHz stereo input and output, using [MOSS-Audio-Tokenizer-v2](https://huggingface.co/OpenMOSS-Team/MOSS-Audio-Tokenizer-v2) as the audio tokenizer. It features stronger multilingual synthesis with language tags, more stable voice cloning, improved long-reference short-text cloning, punctuation-aware prosody, and explicit pause control through `[pause X.Ys]`.
+* 2026.6.18: 🚀 [MOSS-TTS-Local-Transformer-v1.5](https://huggingface.co/OpenMOSS-Team/MOSS-TTS-Local-Transformer-v1.5) receives **Day-0 support** in [SGLang-Omni](https://github.com/sgl-project/sglang-omni) — the first inference backend to support the `MossTTSLocal` architecture, with an OpenAI-compatible `/v1/audio/speech` endpoint, streaming, and voice cloning. See the cookbooks: [`moss_tts_local`](https://github.com/sgl-project/sglang-omni/blob/main/docs/cookbook/moss_tts_local.md), [`moss_tts`](https://github.com/sgl-project/sglang-omni/blob/main/docs/cookbook/moss_tts.md).
+* 2026.6.18: 🚀 Released [MOSS-TTS-Local-Transformer-v1.5](https://huggingface.co/OpenMOSS-Team/MOSS-TTS-Local-Transformer-v1.5), a **4B** `MossTTSLocal` checkpoint that inherits all v1.5 features (language tags, stable cloning, explicit pause control, etc.), scales the backbone from Qwen3-1.7B to Qwen3-4B, and uses **MOSS-Audio-Tokenizer-v2** for native **48 kHz stereo** output.
 * 2026.6.7: 🚀 Released [MOSS-Audio-Tokenizer-v2](https://huggingface.co/OpenMOSS-Team/MOSS-Audio-Tokenizer-v2), natively supporting 48 kHz stereo input and output. Check out the [MOSS-Audio-Tokenizer repository](https://github.com/OpenMOSS/MOSS-Audio-Tokenizer) for more details!
+* 2026.6.2: 🚀 [vLLM-Omni](https://github.com/vllm-project/vllm-omni) now supports the full MOSS-TTS series (`MossTTSDelay`, `MossTTSRealtime`, and `MossTTSNano` architectures), including MOSS-TTS-v1.5, MOSS-TTS, MOSS-TTSD, MOSS-SoundEffect, MOSS-VoiceGenerator, MOSS-TTS-Realtime, and MOSS-TTS-Nano. See the [recipe](https://github.com/vllm-project/vllm-omni/blob/main/recipes/OpenMOSS/MOSS-TTS.md) and [examples](https://github.com/vllm-project/vllm-omni/tree/main/examples/offline_inference/text_to_speech/moss_tts).
 * 2026.5.26: 🚀 Released [MOSS-SoundEffect-v2.0](https://huggingface.co/OpenMOSS-Team/MOSS-SoundEffect-v2.0), a new text-to-audio model using a **DiT backbone with the Flow Matching objective**, generating **48 kHz** bilingual sound effects up to **30 seconds** — see [`moss_soundeffect_v2/`](https://github.com/OpenMOSS/MOSS-TTS/tree/main/moss_soundeffect_v2).
 * 2026.5.26: 🚀 Released [MOSS-TTS-v1.5](https://huggingface.co/OpenMOSS-Team/MOSS-TTS-v1.5), with stronger multilingual synthesis when language tags are provided, more stable voice cloning, better long-reference short-text cloning, punctuation-following prosody, and explicit pause control via `[pause X.Ys]`.
 * 2026.5.6: 🚀 MOSS-TTS and MOSS-Audio-Tokenizer now support `mlx-audio`. Visit the [mlx-audio GitHub repository](https://github.com/Blaizzy/mlx-audio) for details.
@@ -47,7 +49,7 @@ MOSS‑TTS Family is an open‑source **speech and sound generation model family
 * 2026.3.20: 📄 Our [technical report](https://arxiv.org/pdf/2603.18090) is now available on arXiv!
 * 2026.3.18: 🚀 Added a first-class MOSS-TTS `llama.cpp` implementation in the companion repository [`OpenMOSS/llama.cpp`](https://github.com/OpenMOSS/llama.cpp/tree/moss-tts-firstclass), including end-to-end docs and a runnable pipeline for GGUF backbone inference plus ONNX audio codec decoding. See the [first-class e2e guide](https://github.com/OpenMOSS/llama.cpp/blob/moss-tts-firstclass/docs/moss-tts-firstclass-e2e.md).
 * 2026.3.16: 📘 Added a tutorial on fine-tuning the MossTTSLocal architecture, suitable for MOSS-TTS-Local-Transformer!
-* 2026.3.12: 🚀 Added SGLang backend support for the `MossTTSDelay` architecture, enabling efficient inference for MOSS-TTS (Delay) and MOSS-SoundEffect, with around **3× faster** generation throughput!
+* 2026.3.12: 🚀 Added [SGLang-Omni](https://github.com/sgl-project/sglang-omni) backend support for the `MossTTSDelay` architecture, enabling efficient inference for MOSS-TTS (Delay) and MOSS-SoundEffect, with around **3× faster** generation throughput!
 * 2026.3.11: 📘 Added a tutorial on fine-tuning the MossTTSDelay architecture, suitable for MOSS-TTS(Delay), MOSS-TTSD, MOSS-VoiceGenerator, and MOSS-SoundEffect!
 * 2026.3.10: ⚡️ Significantly optimized the VRAM usage of llama.cpp inference pipeline. Now 8B model fits onto 8GB GPUs!
 * 2026.3.4: 🚀 Added **PyTorch-free inference support** — enabling lightweight on-device deployment via **llama.cpp + ONNX Runtime**. Quantized **GGUF weights** are released at [OpenMOSS-Team/MOSS-TTS-GGUF](https://huggingface.co/OpenMOSS-Team/MOSS-TTS-GGUF), and the **ONNX audio tokenizer** is available at [OpenMOSS-Team/MOSS-Audio-Tokenizer-ONNX](https://huggingface.co/OpenMOSS-Team/MOSS-Audio-Tokenizer-ONNX). See the [llama.cpp backend](#llamacpp-backend-torch-free-inference) for details.
@@ -86,12 +88,9 @@ MOSS‑TTS Family is an open‑source **speech and sound generation model family
     - [Installation Profiles](#installation-profiles)
     - [Model Weights](#model-weights)
     - [Configuration](#configuration)
-  - [SGLang Backend (Accelerated Inference)](#sglang-backend-accelerated-inference)
-    - [Quick Start](#quick-start-1)
-    - [Request and Response](#request-and-response)
-      - [MOSS-TTS (Delay)](#moss-tts-delay)
-      - [MOSS-SoundEffect](#moss-soundeffect)
-      - [Response](#response)
+  - [Accelerated Inference Backends](#accelerated-inference-backends)
+    - [SGLang-Omni](#sglang-omni)
+    - [vLLM-Omni](#vllm-omni)
   - [Evaluation](#evaluation)
     - [MOSS‑TTS](#mosstts)
     - [MOSS‑TTSD](#mossttsd)
@@ -518,87 +517,26 @@ Key config options:
 
 For full documentation, see [moss_tts_delay/llama_cpp/README.md](moss_tts_delay/llama_cpp/README.md).
 
-## SGLang Backend (Accelerated Inference)
+## Accelerated Inference Backends
 
-MOSS-TTS (Delay) supports running the fused MOSS-TTS and MOSS-Audio-Tokenizer model with the deeply extended [SGLang](https://github.com/OpenMOSS/sglang) from OpenMOSS, enabling efficient inference for audio generation.
+MOSS-TTS models can be served with high-throughput inference backends for production deployment. Both [SGLang-Omni](https://github.com/sgl-project/sglang-omni) and [vLLM-Omni](https://github.com/vllm-project/vllm-omni) provide OpenAI-compatible serving with streaming and voice cloning support.
 
-### Quick Start
+### SGLang-Omni
 
-```bash
-# 1. Clone the SGLang repository
-git clone https://github.com/OpenMOSS/sglang.git
+[SGLang-Omni](https://github.com/sgl-project/sglang-omni) supports the `MossTTSDelay` and `MossTTSLocal` architectures. It is currently the only inference backend that supports the `MossTTSLocal` architecture, providing Day-0 support for [MOSS-TTS-Local-Transformer-v1.5](https://huggingface.co/OpenMOSS-Team/MOSS-TTS-Local-Transformer-v1.5).
 
-# 2. Install SGLang
-pip install -e ./sglang/python[all]
+For setup and usage, see the cookbooks:
+- **MOSS-TTS (Delay)**: [`docs/cookbook/moss_tts.md`](https://github.com/sgl-project/sglang-omni/blob/main/docs/cookbook/moss_tts.md)
+- **MOSS-TTS-Local-Transformer**: [`docs/cookbook/moss_tts_local.md`](https://github.com/sgl-project/sglang-omni/blob/main/docs/cookbook/moss_tts_local.md)
 
-# 3. (Optional) Fix the SGLang CuDNN compatibility error
-#    RuntimeError: CRITICAL WARNING: PyTorch 2.9.1 & CuDNN Compatibility Issue Detected
-pip install nvidia-cudnn-cu12==9.16.0.29
+### vLLM-Omni
 
-# 4. Download the model and audio tokenizer weights
-huggingface-cli download OpenMOSS-Team/MOSS-TTS --local-dir weights/MOSS-TTS
-huggingface-cli download OpenMOSS-Team/MOSS-Audio-Tokenizer --local-dir weights/MOSS-Audio-Tokenizer
+[vLLM-Omni](https://github.com/vllm-project/vllm-omni) supports the `MossTTSDelay`, `MossTTSRealtime`, and `MossTTSNano` architectures, covering MOSS-TTS, MOSS-TTS-v1.5, MOSS-TTSD, MOSS-SoundEffect, MOSS-VoiceGenerator, MOSS-TTS-Realtime, and MOSS-TTS-Nano.
 
-# 5. Fuse the model and audio tokenizer weights
-python scripts/fuse_moss_tts_delay_with_codec.py --model-path weights/MOSS-TTS --codec-model-path weights/MOSS-Audio-Tokenizer --save-path weights/MOSS-TTS-Delay-With-Codec
-
-# 6. Start the service
-sglang serve --model-path weights/MOSS-TTS-Delay-With-Codec --delay-pattern --trust-remote-code
-```
-
-> If the fused output directory already exists, you can append `--overwrite` to replace it directly, or confirm the overwrite interactively when prompted.
-
-> **Note:** The first request after starting the service for the first time may trigger a lengthy compilation step. This is expected, not a bug, so please wait patiently.
-
-### Request and Response
-
-#### MOSS-TTS (Delay)
-
-```bash
-curl -X POST http://localhost:30000/generate \
-  -H "Content-Type: application/json" \
-  -d '{
-    "text": "Added SGLang backend support for efficient inference.",
-    "audio_data": "https://cdn.jsdelivr.net/gh/OpenMOSS/MOSS-TTSD@main/legacy/v0.7/examples/zh_spk1_moon.wav",
-    "sampling_params": {
-      "max_new_tokens": 512,
-      "temperature": 1.7,
-      "top_p": 0.8,
-      "top_k": 25
-    }
-  }'
-```
-
-- `text` denotes the text content to be synthesized; you can prepend `${token:25}` for token control, for example `${token:25}Hello World`
-- `audio_data` denotes the optional reference audio; if omitted, the model generates audio with a random timbre, and it can be either `<path-to-audio-file>` or `data:audio/wav;base64,{b64_audio}`, where `b64_audio` is the base64 string of a wav file.
-
-#### MOSS-SoundEffect
-
-```bash
-curl -X POST http://localhost:30000/generate \
-  -H "Content-Type: application/json" \
-  -d '{
-    "text": "${token:125}${ambient_sound:a sports car roaring past on the highway.}",
-    "sampling_params": {
-      "max_new_tokens": 512,
-      "temperature": 1.5,
-      "top_p": 0.6,
-      "top_k": 50
-    }
-  }'
-```
-
-- `text` should contain only two tagged fields: `${token:125}` and `${ambient_sound:...}`, where the content after `${ambient_sound:...}` is a natural-language description of the target sound effect.
-- `${token:125}` is recommended for more stable generation.
-- Do not pass `audio_data`, or the model may go OOD.
-
-#### Response
-
-```json
-{"text": "<wav-base64>", "...": "..."}
-```
-
-The HTTP response is a JSON object and may contain multiple fields. The `.text` field stores the WAV base64 string for the generated audio. In most cases, you only need to extract that field and base64-decode it; for example, after saving the response as `response.json`, you can run `jq -r '.text' response.json | base64 -d -i > output.wav`.
+For setup and usage, see:
+- **Recipe & deployment configs**: [`recipes/OpenMOSS/MOSS-TTS.md`](https://github.com/vllm-project/vllm-omni/blob/main/recipes/OpenMOSS/MOSS-TTS.md)
+- **Offline inference examples**: [`examples/offline_inference/text_to_speech/moss_tts/`](https://github.com/vllm-project/vllm-omni/tree/main/examples/offline_inference/text_to_speech/moss_tts)
+- **MOSS-TTS-Nano examples**: [`examples/offline_inference/text_to_speech/moss_tts_nano/`](https://github.com/vllm-project/vllm-omni/tree/main/examples/offline_inference/text_to_speech/moss_tts_nano)
 
 ## Evaluation
 
